@@ -1,18 +1,21 @@
 package no.uib.pap.methods.analysis.ora;
 
-import com.google.common.collect.ImmutableMap;
-import no.uib.pap.model.MessageStatus;
-import no.uib.pap.model.Pathway;
-import no.uib.pap.model.ProteoformFormat;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.math3.distribution.BinomialDistribution;
-
 import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TreeSet;
+
+import no.uib.pap.model.Error;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.math.distribution.BinomialDistributionImpl;
+
+import com.google.common.collect.ImmutableMap;
+
+import no.uib.pap.model.MessageStatus;
+import no.uib.pap.model.Pathway;
+import no.uib.pap.model.ProteoformFormat;
 
 public class Analysis {
 
@@ -21,8 +24,6 @@ public class Analysis {
             int populationSize,
             List<String[]> searchResult) {
 
-        MessageStatus status = null;
-
         HashSet<String> hitProteins = new HashSet<String>();
         HashSet<String> hitPathways = new HashSet<String>();
 
@@ -30,8 +31,8 @@ public class Analysis {
         // Get the set of hit pathways and calculate the found entities for each pathway
         for (String[] record : searchResult) {
             String entity = record[1];
-            String reactionStId = record[3];
-            String pathwayStId = record[5];
+            String reactionStId = record[2];
+            String pathwayStId = record[4];
 
             hitProteins.add(entity);
             hitPathways.add(pathwayStId);
@@ -42,7 +43,15 @@ public class Analysis {
             try {
                 pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(entity, 0));
             } catch (ParseException e) {
+
                 e.printStackTrace(); // TODO Send correct error
+                new MutablePair<TreeSet<Pathway>, MessageStatus>(
+                        new TreeSet<Pathway>(), new MessageStatus(
+                        "Failed",
+                        Error.INPUT_PARSING_ERROR.getCode(),
+                        Error.INPUT_PARSING_ERROR.getCode(),
+                        Error.INPUT_PARSING_ERROR.getMessage(),
+                        ""));
             }
         }
 
@@ -61,7 +70,7 @@ public class Analysis {
             int k = pathway.getEntitiesFound().size(); // Sucessful trials: Entities found participating in the pathway
             double p = pathway.getNumEntitiesTotal() / (double) populationSize; // Probability of sucess in each trial: The entity is a participant in the pathway
 
-            BinomialDistribution binomialDistribution = new BinomialDistribution(hitProteins.size(), p); // Given n trials with probability p of success
+            BinomialDistributionImpl binomialDistribution = new BinomialDistributionImpl(hitProteins.size(), p); // Given n trials with probability p of success
             pathway.setpValue(binomialDistribution.probability(k)); // Probability of k successful trials
 
         }

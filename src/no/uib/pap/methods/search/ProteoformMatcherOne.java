@@ -1,6 +1,8 @@
 package no.uib.pap.methods.search;
 
 import no.uib.pap.model.Proteoform;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
 
@@ -29,16 +31,16 @@ public class ProteoformMatcherOne extends ProteoformMatcher {
             return false;
         }
 
-        if(rP.getPtms().entries().size() == 0){
+        if(rP.getPtms().size() == 0){
             return true;
         }
 
         // At least one of the reference ptms should be in the input
-        for(Map.Entry<String, Long> rPtm : rP.getPtms().entries()){
-            if(iP.getPtms().containsEntry(rPtm.getKey(), rPtm.getValue())){
+        for(Pair<String, Long> rPtm : rP.getPtms()){
+            if(iP.getPtms().contains(new MutablePair<String,Long>(rPtm.getKey(), rPtm.getValue()))){
                 return true;
             }
-            for (Map.Entry<String, Long> iPtm : iP.getPtms().entries()) {
+            for (Pair<String, Long> iPtm : iP.getPtms()) {
                 if (rPtm.getKey().equals(iPtm.getKey())) {
                     if (matches(rPtm.getValue(), iPtm.getValue(), margin)) {
                         return true;

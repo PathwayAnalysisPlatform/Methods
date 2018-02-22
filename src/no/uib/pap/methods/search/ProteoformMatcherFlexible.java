@@ -1,6 +1,8 @@
 package no.uib.pap.methods.search;
 
 import no.uib.pap.model.Proteoform;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
 
@@ -18,7 +20,7 @@ public class ProteoformMatcherFlexible extends ProteoformMatcher {
         }
         return true;
     }
-	
+
     @Override
     public Boolean matches(Proteoform iP, Proteoform rP, Long margin) {
 
@@ -44,12 +46,12 @@ public class ProteoformMatcherFlexible extends ProteoformMatcher {
         }
 
         // All the reference PTMs should be in the input
-        for (Map.Entry<String, Long> rPtm : rP.getPtms().entries()) {
-            if (!iP.getPtms().containsEntry(rPtm.getKey(), rPtm.getValue())) {
+        for (Pair<String, Long> rPtm : rP.getPtms()) {
+            if (!iP.getPtms().contains(new MutablePair<>(rPtm.getKey(), rPtm.getValue()))) {
                 boolean anyMatches = false;
-                for (Map.Entry<String, Long> iPtm : iP.getPtms().entries()) {
-                    if (rPtm.getKey().equals(iPtm.getKey())) {
-                        if (matches(rPtm.getValue(), iPtm.getValue(), margin)) {
+                for (Pair<String, Long> iPtm : iP.getPtms()) {
+                    if (rPtm.getLeft().equals(iPtm.getLeft())) {
+                        if (matches(rPtm.getRight(), iPtm.getRight(), margin)) {
                             anyMatches = true;
                             break;
                         }

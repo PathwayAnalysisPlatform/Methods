@@ -66,7 +66,7 @@ public class Search {
             }
         }
 
-        System.out.println("Requested " + hitProteins.size() + " proteins.");
+        System.out.println("Requested " + input.size() + " proteins.");
 
         MessageStatus status = null;
         status = new MessageStatus("Sucess", 0, 0, "", "");
