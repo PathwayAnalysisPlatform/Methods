@@ -43,9 +43,7 @@ public class Analysis {
             try {
                 pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(entity, 0));
             } catch (ParseException e) {
-
-                e.printStackTrace(); // TODO Send correct error
-                new MutablePair<TreeSet<Pathway>, MessageStatus>(
+                return new MutablePair<TreeSet<Pathway>, MessageStatus>(
                         new TreeSet<Pathway>(), new MessageStatus(
                         "Failed",
                         Error.INPUT_PARSING_ERROR.getCode(),
