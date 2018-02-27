@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SearchTest {
@@ -381,10 +382,10 @@ class SearchTest {
     }
 
     @Test
-    // All proteoforms of a protein
-    void searchWithProteoformSet1FillHitsTest() throws IOException {
+        // All proteoforms of a protein
+    void searchWithProteoformSet1FillHitsTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
-                Files.readLines(new File(resourcesPath + "input/Proteoforms/Set1.csv"), Charset.defaultCharset()),
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/Set1.csv"), Charset.defaultCharset()),
                 MatchType.FLEXIBLE,
                 0L,
                 iReactions,
@@ -398,14 +399,28 @@ class SearchTest {
                 hitPathways
         );
 
-//        assert()
+        assertEquals(29, hitPathways.size());
+        assertEquals(3, iPathways.get("R-HSA-977225").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+
+        assertEquals(1, iPathways.get("R-HSA-977225").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-977225").getReactionsFound().contains("R-HSA-977136"));
+
+        assertEquals(1, iPathways.get("R-HSA-199991").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-199991").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43,00798:95,00798:96,00798:100,00798:109")));
+        assertFalse(iPathways.get("R-HSA-199991").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertEquals(6, iPathways.get("R-HSA-199991").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-199991").getReactionsFound().contains("R-HSA-6807877"));
+        assertTrue(iPathways.get("R-HSA-199991").getReactionsFound().contains("R-HSA-6809003"));
     }
 
     @Test
-    // Some proteoforms of a protein
-    void searchWithProteoformSet2FillHitsTest() throws IOException {
+        // Some proteoforms of a protein
+    void searchWithProteoformSet2FillHitsTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
-                Files.readLines(new File(resourcesPath + "input/Proteoforms/Set2.csv"), Charset.defaultCharset()),
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/Set2.csv"), Charset.defaultCharset()),
                 MatchType.FLEXIBLE,
                 0L,
                 iReactions,
@@ -419,6 +434,25 @@ class SearchTest {
                 hitPathways
         );
 
+        assertEquals(22, hitPathways.size());
+
+        assertEquals(2, iPathways.get("R-HSA-977225").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:95,00798:96,00798:100,00798:109")));
+
+        assertEquals(1, iPathways.get("R-HSA-977225").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-977225").getReactionsFound().contains("R-HSA-977136"));
+
+        assertEquals(3, iPathways.get("R-HSA-392499").getEntitiesFound().size());
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:95,00798:96,00798:100,00798:109")));
+        assertTrue(iPathways.get("R-HSA-392499").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertTrue(iPathways.get("R-HSA-392499").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+
+        assertEquals(10, iPathways.get("R-HSA-392499").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-392499").getReactionsFound().contains("R-HSA-977136"));
+        assertTrue(iPathways.get("R-HSA-392499").getReactionsFound().contains("R-HSA-9023178"));
     }
 
     @Test
