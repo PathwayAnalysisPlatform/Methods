@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class PeptideMatcher {
@@ -35,7 +36,7 @@ public class PeptideMatcher {
 		StringBuilder peptide = new StringBuilder();
 		StringBuilder coordinate = null;
 		StringBuilder mod = null;
-		TreeMultimap<String, Long> ptms = TreeMultimap.create();
+		List<Pair<String, Long>> ptms = new ArrayList<>();
 
 		// Get the peptide
 		// Read until end of line or semicolon
@@ -84,7 +85,7 @@ public class PeptideMatcher {
 					break;
 				c = line.charAt(pos);
 			}
-			ptms.put(mod.toString(), Proteoform.interpretCoordinateFromStringToLong(coordinate.toString()));
+			ptms.add(new MutablePair<>(mod.toString(), Proteoform.interpretCoordinateFromStringToLong(coordinate.toString())));
 			if (c != ',') {
 				break;
 			}

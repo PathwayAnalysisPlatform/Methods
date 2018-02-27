@@ -19,41 +19,19 @@ import no.uib.pap.model.ProteoformFormat;
 
 public class Analysis {
 
-    public static Pair<TreeSet<Pathway>, MessageStatus> analysis(
+    /**
+     * Performs over representation analysis on the hit pathways by the search.
+     * @param iPathways Pathway instances with the found entities and the counts. Results of the analysis go inside this instances.
+     * @param populationSize Total number of proteins(counting isoform) or proteoforms in Reactome
+     * @param hitProteins Participant proteins in the hit pathways
+     * @param hitPathways Selected/hit pathways to be analysed
+     * @return Error or success status messages
+     */
+    public static MessageStatus analysis(
             ImmutableMap<String, Pathway> iPathways,
             int populationSize,
-            List<String[]> searchResult) {
-
-        HashSet<String> hitProteins = new HashSet<String>();
-        HashSet<String> hitPathways = new HashSet<String>();
-
-
-        // Get the set of hit pathways and calculate the found entities for each pathway
-        for (String[] record : searchResult) {
-            String entity = record[1];
-            String reactionStId = record[2];
-            String pathwayStId = record[4];
-
-            hitProteins.add(entity);
-            hitPathways.add(pathwayStId);
-
-            // Add current protein to the found proteoformSet of the pathway
-            Pathway pathway = iPathways.get(pathwayStId);
-            pathway.getReactionsFound().add(reactionStId);
-            try {
-                pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(entity, 0));
-            } catch (ParseException e) {
-
-                e.printStackTrace(); // TODO Send correct error
-                new MutablePair<TreeSet<Pathway>, MessageStatus>(
-                        new TreeSet<Pathway>(), new MessageStatus(
-                        "Failed",
-                        Error.INPUT_PARSING_ERROR.getCode(),
-                        Error.INPUT_PARSING_ERROR.getCode(),
-                        Error.INPUT_PARSING_ERROR.getMessage(),
-                        ""));
-            }
-        }
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         // Traverse all the iPathways
         for (String stId : hitPathways) {
@@ -72,16 +50,17 @@ public class Analysis {
 
             BinomialDistributionImpl binomialDistribution = new BinomialDistributionImpl(hitProteins.size(), p); // Given n trials with probability p of success
             pathway.setpValue(binomialDistribution.probability(k)); // Probability of k successful trials
-
         }
 
-        return new MutablePair<TreeSet<Pathway>, MessageStatus>(adjustPValues(iPathways, hitPathways), new MessageStatus("Sucess", 0, 0, "", ""));
+        adjustPValues(iPathways, hitPathways);
+
+        return new MessageStatus("Sucess", 0, 0, "", "");
     }
 
     /**
      * Benjamini-Hochberg adjustment for FDR at 0.05%
      */
-    private static TreeSet<Pathway> adjustPValues(ImmutableMap<String, Pathway> iPathways, HashSet<String> hitPathways) {
+    private static void adjustPValues(ImmutableMap<String, Pathway> iPathways, HashSet<String> hitPathways) {
 
         // Sort iPathways by pValue
         Comparator<Pathway> comparator = new Comparator<Pathway>() {
@@ -133,7 +112,5 @@ public class Analysis {
             rank++;
         }
         System.out.println("The number of analysed pathways is: " + sortedPathways.size());
-
-        return sortedPathways;
     }
 }

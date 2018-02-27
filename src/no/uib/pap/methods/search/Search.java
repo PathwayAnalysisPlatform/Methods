@@ -6,22 +6,27 @@ import no.uib.pap.model.*;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.lang.Error;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static no.uib.pap.methods.search.PeptideMatcher.*;
 import static no.uib.pap.model.Error.ERROR_INITIALIZING_PEPTIDE_MAPPER;
 import static no.uib.pap.model.InputPatterns.*;
 import static no.uib.pap.model.Warning.*;
 
+/**
+ * Methods to get the reactions and pathways using a list of entities of the accepted input types.
+ * <p>
+ * <p>These methods must fill the number of reactions and entities found in each pathway in the structure passed as parameter.
+ * They also must fill in the set for the hit proteins and hit pathways.</p>
+ */
 public class Search {
 
     public static HashSet<String> hitProteins = new HashSet<>(); // These are in the reference data
     static final String fasta = "uniprot-all.fasta";
 
+    // Fills the hitProteins set to call the next method
     public static Pair<List<String[]>, MessageStatus> searchWithUniProt(
             Collection<String> input,
             ImmutableMap<String, String> iReactions,
@@ -29,14 +34,34 @@ public class Search {
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
 
         for (String protein : input) {
-            for (String reaction : imapProteinsToReactions.get(protein)) {
-                for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+            protein = protein.trim();
 
+            for (String reaction : imapProteinsToReactions.get(protein)) {
+                hitProteins.add(protein);
+
+                for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+                    hitPathways.add(pathwayStId);
+                    Pathway pathway = iPathways.get(pathwayStId);
+                    pathway.getReactionsFound().add(reaction);
+                    try {
+                        pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
+                    } catch (ParseException e) {
+                        return new MutablePair<List<String[]>, MessageStatus>(
+                                result,
+                                new MessageStatus(
+                                        "Failed",
+                                        no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                        no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                        no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
+                                        ""));
+                    }
                     if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
                         for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
                             String[] values = {
@@ -66,12 +91,13 @@ public class Search {
             }
         }
 
-        System.out.println("Requested " + input.size() + " proteins.");
+        System.out.println("Requested " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
         status = new MessageStatus("Sucess", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
+
 
     public static Pair<List<String[]>, MessageStatus> searchWithGene(
             List<String> input,
@@ -81,15 +107,32 @@ public class Search {
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
 
         for (String gene : input) {
-            for (String protein : imapGenesToProteins.get(gene)) {
+            for (String protein : imapGenesToProteins.get(gene.trim())) {
+                hitProteins.add(protein);
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-
+                        hitPathways.add(pathwayStId);
+                        Pathway pathway = iPathways.get(pathwayStId);
+                        pathway.getReactionsFound().add(reaction);
+                        try {
+                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
+                        } catch (ParseException e) {
+                            return new MutablePair<List<String[]>, MessageStatus>(
+                                    result,
+                                    new MessageStatus(
+                                            "Failed",
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
+                                            ""));
+                        }
                         if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
                             for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
                                 String[] values = {
@@ -135,15 +178,32 @@ public class Search {
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
 
         for (String ensembl : input) {
-            for (String protein : imapEnsemblToProteins.get(ensembl)) {
+            for (String protein : imapEnsemblToProteins.get(ensembl.trim())) {
+                hitProteins.add(protein);
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-
+                        hitPathways.add(pathwayStId);
+                        Pathway pathway = iPathways.get(pathwayStId);
+                        pathway.getReactionsFound().add(reaction);
+                        try {
+                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
+                        } catch (ParseException e) {
+                            return new MutablePair<List<String[]>, MessageStatus>(
+                                    result,
+                                    new MessageStatus(
+                                            "Failed",
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
+                                            ""));
+                        }
                         if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
                             for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
                                 String[] values = {
@@ -189,7 +249,9 @@ public class Search {
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
 
@@ -253,7 +315,9 @@ public class Search {
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
 
@@ -330,7 +394,9 @@ public class Search {
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
 
@@ -401,7 +467,9 @@ public class Search {
             ImmutableSetMultimap<Proteoform, String> imapProteoformsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
@@ -438,6 +506,11 @@ public class Search {
         }
 
         for (Proteoform proteoform : inputProteoforms) {
+
+            if(imapProteinsToProteoforms.containsKey(proteoform.getUniProtAcc())){
+                hitProteins.add(proteoform.getUniProtAcc());
+            }
+
             for (Proteoform refProteoform : imapProteinsToProteoforms.get(proteoform.getUniProtAcc())) {
                 if (matcher.matches(proteoform, refProteoform, margin)) {
                     hitProteoforms.add(refProteoform);
@@ -447,16 +520,22 @@ public class Search {
 
         for (Proteoform proteoform : hitProteoforms) {
             for (String reaction : imapProteoformsToReactions.get(proteoform)) {
-                for (String pathway : imapReactionsToPathways.get(reaction)) {
-                    if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathway).size() > 0) {
-                        for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathway)) {
+                for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+
+                    hitPathways.add(pathwayStId);
+                    Pathway pathway = iPathways.get(pathwayStId);
+                    pathway.getReactionsFound().add(reaction);
+                    pathway.getEntitiesFound().add(proteoform);
+
+                    if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                        for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
                             String[] values = {
                                     proteoform.getUniProtAcc(),
                                     proteoform.toString(ProteoformFormat.SIMPLE),
                                     reaction,
                                     iReactions.get(reaction),
-                                    pathway,
-                                    iPathways.get(pathway).getDisplayName(),
+                                    pathwayStId,
+                                    iPathways.get(pathwayStId).getDisplayName(),
                                     topLevelPathway,
                                     iPathways.get(topLevelPathway).getDisplayName()
                             };
@@ -468,8 +547,8 @@ public class Search {
                                 proteoform.toString(ProteoformFormat.SIMPLE),
                                 reaction,
                                 iReactions.get(reaction),
-                                pathway,
-                                iPathways.get(pathway).getDisplayName()
+                                pathwayStId,
+                                iPathways.get(pathwayStId).getDisplayName()
                         };
                         result.add(values);
                     }
@@ -489,7 +568,9 @@ public class Search {
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
 
@@ -517,7 +598,7 @@ public class Search {
             }
         }
 
-        return searchWithUniProt(hitProteins, iReactions, iPathways, imapProteinsToReactions, imapReactionsToPathways, imapPathwaysToTopLevelPathways, topLevelPathways);
+        return searchWithUniProt(hitProteins, iReactions, iPathways, imapProteinsToReactions, imapReactionsToPathways, imapPathwaysToTopLevelPathways, topLevelPathways, hitProteins, hitPathways);
     }
 
     public static Pair<List<String[]>, MessageStatus> searchWithModifiedPeptide(
@@ -530,7 +611,9 @@ public class Search {
             ImmutableSetMultimap<Proteoform, String> imapProteoformsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways) {
+            Boolean topLevelPathways,
+            HashSet<String> hitProteins,
+            HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
