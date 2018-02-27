@@ -38,7 +38,7 @@ public class Search {
             HashSet<String> hitProteins,
             HashSet<String> hitPathways) {
 
-       List<String[]> result = new ArrayList<String[]>();
+        List<String[]> result = new ArrayList<String[]>();
 
         for (String protein : input) {
             protein = protein.trim();
@@ -185,10 +185,25 @@ public class Search {
         List<String[]> result = new ArrayList<String[]>();
 
         for (String ensembl : input) {
-            for (String protein : imapEnsemblToProteins.get(ensembl)) {
+            for (String protein : imapEnsemblToProteins.get(ensembl.trim())) {
+                hitProteins.add(protein);
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-
+                        hitPathways.add(pathwayStId);
+                        Pathway pathway = iPathways.get(pathwayStId);
+                        pathway.getReactionsFound().add(reaction);
+                        try {
+                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
+                        } catch (ParseException e) {
+                            return new MutablePair<List<String[]>, MessageStatus>(
+                                    result,
+                                    new MessageStatus(
+                                            "Failed",
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
+                                            ""));
+                        }
                         if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
                             for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
                                 String[] values = {

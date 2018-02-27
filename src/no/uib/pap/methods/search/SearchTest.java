@@ -243,7 +243,109 @@ class SearchTest {
     }
 
     @Test
-    void searchWithEnsembl() {
+    void searchWithEnsemblFillHitsDiabetesInYouthTest() throws ParseException {
+        List<String> input = new ArrayList<>();
+        input.add("blabla");
+        input.add("ENSG00000101076");
+        input.add("ENSG00000106633");
+        input.add("ENSP00000223366");
+        input.add("ENSP00000312987");
+        input.add("ENSP00000315180");
+        input.add("ENSP00000379142");
+        input.add("ENSP00000384247");
+        input.add("ENSP00000396216");
+        input.add("ENSP00000410911");
+        input.add("\t\tENSP00000412111");
+        input.add("ENSP00000476609");
+        input.add("ENSP00000482149   ");
+
+
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithEnsembl(
+                input,
+                iReactions,
+                iPathways,
+                imapEnsemblToProteins,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(2, hitProteins.size());
+        assertTrue(hitProteins.contains("P41235"));
+        assertTrue(hitProteins.contains("P35557"));
+        assertEquals(16, hitPathways.size());
+        assertTrue(hitPathways.contains("R-HSA-170822"));
+        assertTrue(hitPathways.contains("R-HSA-74160"));
+        assertTrue(hitPathways.contains("R-HSA-1266738"));
+
+        // Check counts
+        assertEquals(5, iPathways.get("R-HSA-170822").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-170822").getReactionsFound().contains("R-HSA-170796"));
+        assertTrue(iPathways.get("R-HSA-170822").getReactionsFound().contains("R-HSA-170810"));
+        assertTrue(iPathways.get("R-HSA-170822").getReactionsFound().contains("R-HSA-170825"));
+        assertEquals(1, iPathways.get("R-HSA-170822").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-170822").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P35557")));
+
+        assertEquals(1, iPathways.get("R-HSA-383280").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-383280").getReactionsFound().contains("R-HSA-376419"));
+        assertEquals(1, iPathways.get("R-HSA-383280").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-383280").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P41235")));
+    }
+
+    @Test
+    void searchWithEnsemblFillHitsCysticFibrosisTest() throws ParseException {
+        List<String> input = new ArrayList<>();
+        input.add("ENSG00000001626");
+        input.add("ENSG00000016602");
+        input.add("ENSG00000067182");
+        input.add("ENSG00000105329");
+        input.add("ENSG00000106089");
+        input.add("\tENSG00000111319");
+        input.add("ENSG00000132912");
+        input.add("ENSG00000143226");
+        input.add("   ENSG00000166828");
+        input.add("ENSG00000168447");
+        input.add("ENSG00000169429");
+        input.add("blabla");
+
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithEnsembl(
+                input,
+                iReactions,
+                iPathways,
+                imapEnsemblToProteins,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(11, hitProteins.size());
+        assertTrue(hitProteins.contains("P37088"));
+        assertTrue(hitProteins.contains("P01137"));
+        assertEquals(125, hitPathways.size());
+        assertTrue(hitPathways.contains("R-HSA-2672351"));
+        assertTrue(hitPathways.contains("R-HSA-76002"));
+        assertTrue(hitPathways.contains("R-HSA-449147"));
+
+        // Check counts
+        assertEquals(4, iPathways.get("R-HSA-2672351").getEntitiesFound().size());
+        assertEquals(6, iPathways.get("R-HSA-2672351").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-2672351").getReactionsFound().contains("R-HSA-5333671"));
+        assertTrue(iPathways.get("R-HSA-2672351").getReactionsFound().contains("R-HSA-2672334"));
+        assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q14CN2")));
+        assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P51170")));
+
+        assertEquals(3, iPathways.get("R-HSA-1266738").getReactionsFound().size());
+        assertEquals(2, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-381283"));
+        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-560491"));
+        assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q16623")));
+        assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01137")));
     }
 
     @Test
