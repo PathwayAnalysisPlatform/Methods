@@ -17,12 +17,12 @@ import java.io.ObjectInputStream;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SearchTest {
 
@@ -361,23 +361,64 @@ class SearchTest {
     }
 
     @Test
-    void searchWithProteoform() throws IOException {
+    void searchWithProteoformTest() throws IOException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
                 Files.readLines(new File(resourcesPath + "input/ReactomeAllProteoformsSimple.csv"), Charset.defaultCharset()),
                 MatchType.FLEXIBLE,
                 0L,
-                (ImmutableMap<String, String>) getSerializedObject("iReactions.gz"),
-                (ImmutableMap<String, Pathway>) getSerializedObject("iPathways.gz"),
-                (ImmutableSetMultimap<String, Proteoform>) getSerializedObject("imapProteinsToProteoforms.gz"),
-                (ImmutableSetMultimap<Proteoform, String>) getSerializedObject("imapProteoformsToReactions.gz"),
-                (ImmutableSetMultimap<String, String>) getSerializedObject("imapReactionsToPathways.gz"),
-                (ImmutableSetMultimap<String, String>) getSerializedObject("imapPathwaysToTopLevelPathways.gz"),
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
                 hitPathways
         );
 
         assertEquals(441275, result.getLeft().size());
+    }
+
+    @Test
+    // All proteoforms of a protein
+    void searchWithProteoformSet1FillHitsTest() throws IOException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/Set1.csv"), Charset.defaultCharset()),
+                MatchType.FLEXIBLE,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+//        assert()
+    }
+
+    @Test
+    // Some proteoforms of a protein
+    void searchWithProteoformSet2FillHitsTest() throws IOException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/Set2.csv"), Charset.defaultCharset()),
+                MatchType.FLEXIBLE,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
     }
 
     @Test

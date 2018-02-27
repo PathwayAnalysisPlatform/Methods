@@ -506,6 +506,11 @@ public class Search {
         }
 
         for (Proteoform proteoform : inputProteoforms) {
+
+            if(imapProteinsToProteoforms.containsKey(proteoform.getUniProtAcc())){
+                hitProteins.add(proteoform.getUniProtAcc());
+            }
+
             for (Proteoform refProteoform : imapProteinsToProteoforms.get(proteoform.getUniProtAcc())) {
                 if (matcher.matches(proteoform, refProteoform, margin)) {
                     hitProteoforms.add(refProteoform);
@@ -515,16 +520,22 @@ public class Search {
 
         for (Proteoform proteoform : hitProteoforms) {
             for (String reaction : imapProteoformsToReactions.get(proteoform)) {
-                for (String pathway : imapReactionsToPathways.get(reaction)) {
-                    if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathway).size() > 0) {
-                        for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathway)) {
+                for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+
+                    hitPathways.add(pathwayStId);
+                    Pathway pathway = iPathways.get(pathwayStId);
+                    pathway.getReactionsFound().add(reaction);
+                    pathway.getEntitiesFound().add(proteoform);
+
+                    if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                        for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
                             String[] values = {
                                     proteoform.getUniProtAcc(),
                                     proteoform.toString(ProteoformFormat.SIMPLE),
                                     reaction,
                                     iReactions.get(reaction),
-                                    pathway,
-                                    iPathways.get(pathway).getDisplayName(),
+                                    pathwayStId,
+                                    iPathways.get(pathwayStId).getDisplayName(),
                                     topLevelPathway,
                                     iPathways.get(topLevelPathway).getDisplayName()
                             };
@@ -536,8 +547,8 @@ public class Search {
                                 proteoform.toString(ProteoformFormat.SIMPLE),
                                 reaction,
                                 iReactions.get(reaction),
-                                pathway,
-                                iPathways.get(pathway).getDisplayName()
+                                pathwayStId,
+                                iPathways.get(pathwayStId).getDisplayName()
                         };
                         result.add(values);
                     }
