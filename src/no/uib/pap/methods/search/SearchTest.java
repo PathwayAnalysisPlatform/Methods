@@ -351,14 +351,17 @@ class SearchTest {
 
     @Test
     void searchWithRsId() {
+        // TODO Write genetic variants test
     }
 
     @Test
     void searchWithChrBp() {
+        //TODO Write genetic variants test
     }
 
     @Test
     void searchWithVCF() {
+        //TODO Write genetic variants test
     }
 
     @Test
@@ -459,7 +462,80 @@ class SearchTest {
     }
 
     @Test
-    void searchWithPeptide() {
+    void searchWithPeptideFillHitsTest1() {
+        List<String> input = new ArrayList<>();
+        input.add("LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN");
+
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithPeptide(
+                input,
+                iReactions,
+                iPathways,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertTrue(hitProteins.contains("P01308"));
+        assertEquals(29, hitPathways.size());
+        assertTrue(hitPathways.contains("R-HSA-264876"));
+        assertTrue(hitPathways.contains("R-HSA-74749"));
+    }
+
+    @Test
+    void searchWithPeptidesFillHitsTest2() throws ParseException {
+        List<String> input = new ArrayList<>();
+        input.add("IYLGIGLCLLFIVRTLLLHPAIFGLHHIGMQMRIAMFSLIYKKTLKLSSRVLDKISIGQL"); //P13569
+        input.add("YVRYFNSSAFFFSGFFVVFLSVLPYALIKGIILRKIFTTISFCIVLRMAVTRQFPWAVQT"); //P13569
+        input.add("TDLSQKSLQLESKGLTLNSNAWMNDTVIIDSTVGKDTFFLITWNSLPPSISLWDPSGTIM"); //Q14CN2
+        input.add("TGRRGDLATIHGMNRPFLLLMATPLERAQHLQSSRHRRALDTNYCFSSTEKNCCVRQLYI"); //P01137
+        input.add("SEWLVLQTPHLEFQEGETIMLRCHSWKDKPLVKVTFFQNGKSQKFSHLDPTFSIPQANHS"); //P12318
+        input.add("PPKELVLAGKDAAAEYDELAEPQDFQDDPDIIAFRKANKVGIFIKVTPQREEGEVTVCFK"); //Q9UJW0
+        input.add("\tAVLERILAPELSHANATRNLNFSIWNHTPLVLIDERNPHHPMVLDLFGDNHNGLTSSSAS"); //P51168
+        input.add("MAPGEKIKAKIKKNLPVTGPQAPTIKELMRWYCLNTNTHGCRRIVVSRGRLRRLLWIGFT"); //P51170
+        input.add("FFCNNTTIHGAIRLVCSQHNRMKTAFWAVLWLCTFGMMYWQFGLLFGEYFSYPVSLNINL"); //P37088
+        input.add("   AVVENVPPLRWKEFVRRLGLSDHEIDRLELQNGRCLREAQYSMLATWRRRTPRREATLEL"); //P19438
+        input.add("ILASPNPDEKTKEELEELMSDIKKTANKVRSKLKSIEQSIEQEEGLNRSSADLRIRKTQH"); //Q16623
+        input.add("MTSKLAVALLAAFLISAALCEGAVLPRSAKELRCQCIKTYSKPFHPKFIKELRVIESGPH"); //P10145
+        input.add("blabla");
+
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithPeptide(
+                input,
+                iReactions,
+                iPathways,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(11, hitProteins.size());
+        assertTrue(hitProteins.contains("P37088"));
+        assertTrue(hitProteins.contains("P01137"));
+        assertEquals(125, hitPathways.size());
+        assertTrue(hitPathways.contains("R-HSA-2672351"));
+        assertTrue(hitPathways.contains("R-HSA-76002"));
+        assertTrue(hitPathways.contains("R-HSA-449147"));
+
+        // Check counts
+        assertEquals(4, iPathways.get("R-HSA-2672351").getEntitiesFound().size());
+        assertEquals(6, iPathways.get("R-HSA-2672351").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-2672351").getReactionsFound().contains("R-HSA-5333671"));
+        assertTrue(iPathways.get("R-HSA-2672351").getReactionsFound().contains("R-HSA-2672334"));
+        assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q14CN2")));
+        assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P51170")));
+
+        assertEquals(3, iPathways.get("R-HSA-1266738").getReactionsFound().size());
+        assertEquals(2, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-381283"));
+        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-560491"));
+        assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q16623")));
+        assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01137")));
     }
 
     @Test

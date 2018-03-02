@@ -6,7 +6,6 @@ import no.uib.pap.model.*;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.lang.Error;
 import java.text.ParseException;
 import java.util.*;
 
@@ -24,7 +23,7 @@ import static no.uib.pap.model.Warning.*;
 public class Search {
 
     public static HashSet<String> hitProteins = new HashSet<>(); // These are in the reference data
-    static final String fasta = "uniprot-all.fasta";
+    static final String fasta = "resources/uniprot-all.fasta";
 
     // Fills the hitProteins set to call the next method
     public static Pair<List<String[]>, MessageStatus> searchWithUniProt(
@@ -42,6 +41,10 @@ public class Search {
 
         for (String protein : input) {
             protein = protein.trim();
+
+            if (protein.contains("-")) {
+                protein = protein.substring(0, protein.indexOf("-"));
+            }
 
             for (String reaction : imapProteinsToReactions.get(protein)) {
                 hitProteins.add(protein);
@@ -91,7 +94,7 @@ public class Search {
             }
         }
 
-        System.out.println("Requested " + hitProteins.size() + " proteins.");
+        System.out.println("\nRequested " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
         status = new MessageStatus("Sucess", 0, 0, "", "");
@@ -474,18 +477,26 @@ public class Search {
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
         HashSet<Proteoform> hitProteoforms = new HashSet<>();
-        ProteoformMatcher matcher = null;
+        ProteoformMatching matcher = null;
         switch (matchType) {
             case FLEXIBLE:
-                matcher = new ProteoformMatcherFlexible();
+                matcher = new ProteoformMatchingTypeFlexible();
                 break;
             case ONE:
-                matcher = new ProteoformMatcherOne();
+                matcher = new ProteoformMatchingOne();
                 break;
             case STRICT:
-                matcher = new ProteoformMatcherStrict();
+                matcher = new ProteoformMatchingStrict();
+                break;
+            case ONENOTYPES:
+                matcher = new ProteoformMatchingOneNoTypes();
+                break;
+            case FLEXIBLENOTYPES:
+                matcher = new ProteoformMatchingFlexibleNoTypes();
                 break;
         }
+
+        assert matcher != null;
 
         int row = 1;
         for (String line : input) {
@@ -507,7 +518,7 @@ public class Search {
 
         for (Proteoform proteoform : inputProteoforms) {
 
-            if(imapProteinsToProteoforms.containsKey(proteoform.getUniProtAcc())){
+            if (imapProteinsToProteoforms.containsKey(proteoform.getUniProtAcc())) {
                 hitProteins.add(proteoform.getUniProtAcc());
             }
 
@@ -588,7 +599,11 @@ public class Search {
             if (matches_Peptite(line)) {
                 // Process line
                 for (String protein : getPeptideMapping(line)) {
-                    hitProteins.add(protein);
+                    if (protein.contains("-")) {
+                        hitProteins.add(protein.substring(0, protein.indexOf("-")));
+                    } else {
+                        hitProteins.add(protein);
+                    }
                 }
             } else {
                 if (line.isEmpty())
@@ -618,7 +633,7 @@ public class Search {
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
         HashSet<Proteoform> hitProteoforms = new HashSet<>();
-        ProteoformMatcher matcher = null;
+        ProteoformMatching matcher = null;
 
         // Note: In this function the duplicate protein identifiers are removed by
         // adding the whole input list to a set.
@@ -649,13 +664,13 @@ public class Search {
 
         switch (matchType) {
             case FLEXIBLE:
-                matcher = new ProteoformMatcherFlexible();
+                matcher = new ProteoformMatchingTypeFlexible();
                 break;
             case ONE:
-                matcher = new ProteoformMatcherOne();
+                matcher = new ProteoformMatchingOne();
                 break;
             case STRICT:
-                matcher = new ProteoformMatcherStrict();
+                matcher = new ProteoformMatchingStrict();
                 break;
         }
 

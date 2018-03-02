@@ -155,6 +155,7 @@ public class PeptideMatcher {
 			System.exit(1);
 		} catch (IOException ex) {
 			System.out.println("Error while reading fasta file for peptide mapping."); // TODO Send proper error
+			System.out.println(ex.getMessage());
 			System.exit(1);
 		}
 
