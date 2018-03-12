@@ -28,7 +28,7 @@ public class Search {
     // Fills the hitProteins set to call the next method
     public static Pair<List<String[]>, MessageStatus> searchWithUniProt(
             Collection<String> input,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
@@ -65,26 +65,37 @@ public class Search {
                                         no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
                                         ""));
                     }
-                    if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                        for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                    if (topLevelPathways) {
+                        if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                                String[] values = {
+                                        protein,
+                                        reaction,
+                                        iReactions.get(reaction).getDisplayName(),
+                                        pathwayStId,
+                                        iPathways.get(pathwayStId).getDisplayName(),
+                                        topLevelPathway,
+                                        iPathways.get(topLevelPathway).getDisplayName()
+                                };
+                                result.add(values);
+                            }
+                        } else {
                             String[] values = {
-                                    "",
                                     protein,
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathwayStId,
                                     iPathways.get(pathwayStId).getDisplayName(),
-                                    topLevelPathway,
-                                    iPathways.get(topLevelPathway).getDisplayName()
+                                    pathwayStId,
+                                    iPathways.get(pathwayStId).getDisplayName()
                             };
                             result.add(values);
                         }
                     } else {
                         String[] values = {
-                                "",
                                 protein,
                                 reaction,
-                                iReactions.get(reaction),
+                                iReactions.get(reaction).getDisplayName(),
                                 pathwayStId,
                                 iPathways.get(pathwayStId).getDisplayName()
                         };
@@ -104,7 +115,7 @@ public class Search {
 
     public static Pair<List<String[]>, MessageStatus> searchWithGene(
             List<String> input,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapGenesToProteins,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
@@ -136,17 +147,31 @@ public class Search {
                                             no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
                                             ""));
                         }
-                        if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                        if (topLevelPathways) {
+                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                                    String[] values = {
+                                            gene,
+                                            protein,
+                                            reaction,
+                                            iReactions.get(reaction).getDisplayName(),
+                                            pathwayStId,
+                                            iPathways.get(pathwayStId).getDisplayName(),
+                                            topLevelPathway,
+                                            iPathways.get(topLevelPathway).getDisplayName()
+                                    };
+                                    result.add(values);
+                                }
+                            } else {
                                 String[] values = {
                                         gene,
                                         protein,
                                         reaction,
-                                        iReactions.get(reaction),
+                                        iReactions.get(reaction).getDisplayName(),
                                         pathwayStId,
                                         iPathways.get(pathwayStId).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
+                                        pathwayStId,
+                                        iPathways.get(pathwayStId).getDisplayName()
                                 };
                                 result.add(values);
                             }
@@ -155,7 +180,7 @@ public class Search {
                                     gene,
                                     protein,
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathwayStId,
                                     iPathways.get(pathwayStId).getDisplayName()
                             };
@@ -175,7 +200,7 @@ public class Search {
 
     public static Pair<List<String[]>, MessageStatus> searchWithEnsembl(
             List<String> input,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapEnsemblToProteins,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
@@ -207,17 +232,31 @@ public class Search {
                                             no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
                                             ""));
                         }
-                        if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                        if (topLevelPathways) {
+                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                                    String[] values = {
+                                            ensembl,
+                                            protein,
+                                            reaction,
+                                            iReactions.get(reaction).getDisplayName(),
+                                            pathwayStId,
+                                            iPathways.get(pathwayStId).getDisplayName(),
+                                            topLevelPathway,
+                                            iPathways.get(topLevelPathway).getDisplayName()
+                                    };
+                                    result.add(values);
+                                }
+                            } else {
                                 String[] values = {
                                         ensembl,
                                         protein,
                                         reaction,
-                                        iReactions.get(reaction),
+                                        iReactions.get(reaction).getDisplayName(),
                                         pathwayStId,
                                         iPathways.get(pathwayStId).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
+                                        pathwayStId,
+                                        iPathways.get(pathwayStId).getDisplayName(),
                                 };
                                 result.add(values);
                             }
@@ -226,7 +265,7 @@ public class Search {
                                     ensembl,
                                     protein,
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathwayStId,
                                     iPathways.get(pathwayStId).getDisplayName()
                             };
@@ -246,7 +285,7 @@ public class Search {
 
     public static Pair<List<String[]>, MessageStatus> searchWithRsId(
             List<String> input,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapRsIdsToProteins,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
@@ -273,17 +312,31 @@ public class Search {
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
 
-                        if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                        if (topLevelPathways) {
+                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                                    String[] values = {
+                                            rsid,
+                                            protein,
+                                            reaction,
+                                            iReactions.get(reaction).getDisplayName(),
+                                            pathwayStId,
+                                            iPathways.get(pathwayStId).getDisplayName(),
+                                            topLevelPathway,
+                                            iPathways.get(topLevelPathway).getDisplayName()
+                                    };
+                                    result.add(values);
+                                }
+                            } else {
                                 String[] values = {
                                         rsid,
                                         protein,
                                         reaction,
-                                        iReactions.get(reaction),
+                                        iReactions.get(reaction).getDisplayName(),
                                         pathwayStId,
                                         iPathways.get(pathwayStId).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
+                                        pathwayStId,
+                                        iPathways.get(pathwayStId).getDisplayName(),
                                 };
                                 result.add(values);
                             }
@@ -292,7 +345,7 @@ public class Search {
                                     rsid,
                                     protein,
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathwayStId,
                                     iPathways.get(pathwayStId).getDisplayName()
                             };
@@ -312,7 +365,7 @@ public class Search {
 
     public static Pair<List<String[]>, MessageStatus> searchWithChrBp(
             List<String> input,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapChrBpToProteins,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
@@ -341,17 +394,31 @@ public class Search {
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
 
-                        if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                        if (topLevelPathways) {
+                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                                    String[] values = {
+                                            snp.getChr() + "+" + snp.getBp(),
+                                            protein,
+                                            reaction,
+                                            iReactions.get(reaction).getDisplayName(),
+                                            pathwayStId,
+                                            iPathways.get(pathwayStId).getDisplayName(),
+                                            topLevelPathway,
+                                            iPathways.get(topLevelPathway).getDisplayName()
+                                    };
+                                    result.add(values);
+                                }
+                            } else {
                                 String[] values = {
                                         snp.getChr() + "+" + snp.getBp(),
                                         protein,
                                         reaction,
-                                        iReactions.get(reaction),
+                                        iReactions.get(reaction).getDisplayName(),
                                         pathwayStId,
                                         iPathways.get(pathwayStId).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
+                                        pathwayStId,
+                                        iPathways.get(pathwayStId).getDisplayName(),
                                 };
                                 result.add(values);
                             }
@@ -360,7 +427,7 @@ public class Search {
                                     snp.getChr() + "+" + snp.getBp(),
                                     protein,
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathwayStId,
                                     iPathways.get(pathwayStId).getDisplayName()
                             };
@@ -391,7 +458,7 @@ public class Search {
 
     public static Pair<List<String[]>, MessageStatus> searchWithVCF(
             List<String> input,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapChrBpToProteins,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
@@ -423,17 +490,31 @@ public class Search {
             for (String protein : imapChrBpToProteins.get(snp.getChr() + "_" + snp.getBp())) {
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-                        if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                        if (topLevelPathways) {
+                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                                    String[] values = {
+                                            snp.getChr() + "+" + snp.getBp(),
+                                            protein,
+                                            reaction,
+                                            iReactions.get(reaction).getDisplayName(),
+                                            pathwayStId,
+                                            iPathways.get(pathwayStId).getDisplayName(),
+                                            topLevelPathway,
+                                            iPathways.get(topLevelPathway).getDisplayName()
+                                    };
+                                    result.add(values);
+                                }
+                            } else {
                                 String[] values = {
                                         snp.getChr() + "+" + snp.getBp(),
                                         protein,
                                         reaction,
-                                        iReactions.get(reaction),
+                                        iReactions.get(reaction).getDisplayName(),
                                         pathwayStId,
                                         iPathways.get(pathwayStId).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
+                                        pathwayStId,
+                                        iPathways.get(pathwayStId).getDisplayName(),
                                 };
                                 result.add(values);
                             }
@@ -442,7 +523,7 @@ public class Search {
                                     snp.getChr() + "+" + snp.getBp(),
                                     protein,
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathwayStId,
                                     iPathways.get(pathwayStId).getDisplayName()
                             };
@@ -464,7 +545,7 @@ public class Search {
             List<String> input,
             MatchType matchType,
             Long margin,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, Proteoform> imapProteinsToProteoforms,
             ImmutableSetMultimap<Proteoform, String> imapProteoformsToReactions,
@@ -538,17 +619,31 @@ public class Search {
                     pathway.getReactionsFound().add(reaction);
                     pathway.getEntitiesFound().add(proteoform);
 
-                    if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                        for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                    if (topLevelPathways) {
+                        if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
+                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
+                                String[] values = {
+                                        proteoform.getUniProtAcc(),
+                                        proteoform.toString(ProteoformFormat.SIMPLE),
+                                        reaction,
+                                        iReactions.get(reaction).getDisplayName(),
+                                        pathwayStId,
+                                        iPathways.get(pathwayStId).getDisplayName(),
+                                        topLevelPathway,
+                                        iPathways.get(topLevelPathway).getDisplayName()
+                                };
+                                result.add(values);
+                            }
+                        } else {
                             String[] values = {
                                     proteoform.getUniProtAcc(),
                                     proteoform.toString(ProteoformFormat.SIMPLE),
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathwayStId,
                                     iPathways.get(pathwayStId).getDisplayName(),
-                                    topLevelPathway,
-                                    iPathways.get(topLevelPathway).getDisplayName()
+                                    pathwayStId,
+                                    iPathways.get(pathwayStId).getDisplayName(),
                             };
                             result.add(values);
                         }
@@ -557,7 +652,7 @@ public class Search {
                                 proteoform.getUniProtAcc(),
                                 proteoform.toString(ProteoformFormat.SIMPLE),
                                 reaction,
-                                iReactions.get(reaction),
+                                iReactions.get(reaction).getDisplayName(),
                                 pathwayStId,
                                 iPathways.get(pathwayStId).getDisplayName()
                         };
@@ -574,7 +669,7 @@ public class Search {
 
     public static Pair<List<String[]>, MessageStatus> searchWithPeptide(
             Collection<String> input,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
@@ -620,7 +715,7 @@ public class Search {
             List<String> input,
             MatchType matchType,
             Long margin,
-            ImmutableMap<String, String> iReactions,
+            ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, Proteoform> imapProteinsToProteoforms,
             ImmutableSetMultimap<Proteoform, String> imapProteoformsToReactions,
@@ -685,17 +780,31 @@ public class Search {
         for (Proteoform proteoform : hitProteoforms) {
             for (String reaction : imapProteoformsToReactions.get(proteoform)) {
                 for (String pathway : imapReactionsToPathways.get(reaction)) {
-                    if (topLevelPathways && imapPathwaysToTopLevelPathways.get(pathway).size() > 0) {
-                        for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathway)) {
+                    if (topLevelPathways) {
+                        if (imapPathwaysToTopLevelPathways.get(pathway).size() > 0) {
+                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathway)) {
+                                String[] values = {
+                                        proteoform.getUniProtAcc(),
+                                        proteoform.toString(ProteoformFormat.SIMPLE),
+                                        reaction,
+                                        iReactions.get(reaction).getDisplayName(),
+                                        pathway,
+                                        iPathways.get(pathway).getDisplayName(),
+                                        topLevelPathway,
+                                        iPathways.get(topLevelPathway).getDisplayName()
+                                };
+                                result.add(values);
+                            }
+                        } else {
                             String[] values = {
                                     proteoform.getUniProtAcc(),
                                     proteoform.toString(ProteoformFormat.SIMPLE),
                                     reaction,
-                                    iReactions.get(reaction),
+                                    iReactions.get(reaction).getDisplayName(),
                                     pathway,
                                     iPathways.get(pathway).getDisplayName(),
-                                    topLevelPathway,
-                                    iPathways.get(topLevelPathway).getDisplayName()
+                                    pathway,
+                                    iPathways.get(pathway).getDisplayName()
                             };
                             result.add(values);
                         }
@@ -704,7 +813,7 @@ public class Search {
                                 proteoform.getUniProtAcc(),
                                 proteoform.toString(ProteoformFormat.SIMPLE),
                                 reaction,
-                                iReactions.get(reaction),
+                                iReactions.get(reaction).getDisplayName(),
                                 pathway,
                                 iPathways.get(pathway).getDisplayName()
                         };

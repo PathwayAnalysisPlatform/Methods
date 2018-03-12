@@ -3,10 +3,7 @@ package no.uib.pap.methods.analysis.ora;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import no.uib.pap.methods.search.Search;
-import no.uib.pap.model.MessageStatus;
-import no.uib.pap.model.Pathway;
-import no.uib.pap.model.Proteoform;
-import no.uib.pap.model.ProteoformFormat;
+import no.uib.pap.model.*;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
@@ -30,7 +27,7 @@ class AnalysisTest {
     static HashSet<String> hitProteins = null;
     static HashSet<String> hitPathways = null;
 
-    private static ImmutableMap<String, String> iReactions; // Reaction stId to Reaction displayName
+    private static ImmutableMap<String, Reaction> iReactions; // Reaction stId to Reaction displayName
     private static ImmutableMap<String, Pathway> iPathways; // Pathway stId to Pathway instance
     private static ImmutableMap<String, String> iProteins; // Protein accession (UniProt) to name
     private static ImmutableSetMultimap<String, String> imapGenesToProteins = null;
@@ -48,7 +45,7 @@ class AnalysisTest {
 
     @BeforeAll
     static void loadStaticMapping() {
-        iReactions = (ImmutableMap<String, String>) getSerializedObject("iReactions.gz");
+        iReactions = (ImmutableMap<String, Reaction>) getSerializedObject("iReactions.gz");
         iPathways = (ImmutableMap<String, Pathway>) getSerializedObject("iPathways.gz");
         iProteins = (ImmutableMap<String, String>) getSerializedObject("iProteins.gz");
         imapGenesToProteins = (ImmutableSetMultimap<String, String>) getSerializedObject("imapGenesToProteins.gz");

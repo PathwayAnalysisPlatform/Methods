@@ -31,7 +31,7 @@ class SearchTest {
     static HashSet<String> hitProteins = null;
     static HashSet<String> hitPathways = null;
 
-    private static ImmutableMap<String, String> iReactions; // Reaction stId to Reaction displayName
+    private static ImmutableMap<String, Reaction> iReactions; // Reaction stId to Reaction displayName
     private static ImmutableMap<String, Pathway> iPathways; // Pathway stId to Pathway instance
     private static ImmutableMap<String, String> iProteins; // Protein accession (UniProt) to name
     private static ImmutableSetMultimap<String, String> imapGenesToProteins = null;
@@ -49,7 +49,7 @@ class SearchTest {
 
     @BeforeAll
     static void loadStaticMapping() {
-        iReactions = (ImmutableMap<String, String>) getSerializedObject("iReactions.gz");
+        iReactions = (ImmutableMap<String, Reaction>) getSerializedObject("iReactions.gz");
         iPathways = (ImmutableMap<String, Pathway>) getSerializedObject("iPathways.gz");
         iProteins = (ImmutableMap<String, String>) getSerializedObject("iProteins.gz");
         imapGenesToProteins = (ImmutableSetMultimap<String, String>) getSerializedObject("imapGenesToProteins.gz");
@@ -61,9 +61,8 @@ class SearchTest {
         imapProteoformsToReactions = (ImmutableSetMultimap<Proteoform, String>) getSerializedObject("imapProteoformsToReactions.gz");
 //        imapRsIdsToProteins = (ImmutableSetMultimap<String,String>) getSerializedObject("imapRsIdsToProteins.gz");
 //        imapChrBpToProteins = (ImmutableSetMultimap<String,String>) getSerializedObject("imapChrBpToProteins.gz");
-        imapReactionsToParticipants = (ImmutableSetMultimap<String, String>) getSerializedObject("imapReactionsToParticipants.gz");
         imapProteinsToComplexes = (ImmutableSetMultimap<String, String>) getSerializedObject("imapProteinsToComplexes.gz");
-        imapComplexesToParticipants = (ImmutableSetMultimap<String, String>) getSerializedObject("imapComplexesToParticipants.gz");
+        imapComplexesToParticipants = (ImmutableSetMultimap<String, String>) getSerializedObject("imapComplexesToComponents.gz");
     }
 
     @BeforeEach
