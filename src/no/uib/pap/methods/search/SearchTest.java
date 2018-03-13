@@ -367,7 +367,7 @@ class SearchTest {
     void searchWithProteoformTest() throws IOException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
                 Files.readLines(new File(resourcesPath + "input/ReactomeAllProteoformsSimple.csv"), Charset.defaultCharset()),
-                MatchType.FLEXIBLE,
+                MatchType.SUPERSET,
                 0L,
                 iReactions,
                 iPathways,
@@ -388,7 +388,7 @@ class SearchTest {
     void searchWithProteoformSet1FillHitsTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
                 Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/Set1.csv"), Charset.defaultCharset()),
-                MatchType.FLEXIBLE,
+                MatchType.SUPERSET,
                 0L,
                 iReactions,
                 iPathways,
@@ -425,7 +425,7 @@ class SearchTest {
     void searchWithProteoformSet2FillHitsTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
                 Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/Set2.csv"), Charset.defaultCharset()),
-                MatchType.FLEXIBLE,
+                MatchType.SUPERSET,
                 0L,
                 iReactions,
                 iPathways,

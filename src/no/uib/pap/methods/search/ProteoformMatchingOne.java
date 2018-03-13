@@ -5,6 +5,13 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class ProteoformMatchingOne extends ProteoformMatching {
+
+    private static Boolean useTypes;
+
+    public ProteoformMatchingOne(Boolean useTypes) {
+        this.useTypes = useTypes;
+    }
+
     @Override
     public Boolean matches(Proteoform iP, Proteoform rP, Long margin) {
 
@@ -38,8 +45,11 @@ public class ProteoformMatchingOne extends ProteoformMatching {
             if(iP.getPtms().contains(new MutablePair<String,Long>(rPtm.getKey(), rPtm.getValue()))){
                 return true;
             }
+            // Traverse all the possible input ptms
             for (Pair<String, Long> iPtm : iP.getPtms()) {
-                if (rPtm.getKey().equals(iPtm.getKey())) {
+                // Check type is equal if needed
+                if (!useTypes || rPtm.getKey().equals(iPtm.getKey())) {
+                    // Check the coordinates are within the margin
                     if (matches(rPtm.getValue(), iPtm.getValue(), margin)) {
                         return true;
                     }

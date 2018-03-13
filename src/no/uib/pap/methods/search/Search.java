@@ -558,24 +558,7 @@ public class Search {
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
         HashSet<Proteoform> hitProteoforms = new HashSet<>();
-        ProteoformMatching matcher = null;
-        switch (matchType) {
-            case FLEXIBLE:
-                matcher = new ProteoformMatchingTypeFlexible();
-                break;
-            case ONE:
-                matcher = new ProteoformMatchingOne();
-                break;
-            case STRICT:
-                matcher = new ProteoformMatchingStrict();
-                break;
-            case ONENOTYPES:
-                matcher = new ProteoformMatchingOneNoTypes();
-                break;
-            case FLEXIBLENOTYPES:
-                matcher = new ProteoformMatchingFlexibleNoTypes();
-                break;
-        }
+        ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
 
         assert matcher != null;
 
@@ -728,7 +711,7 @@ public class Search {
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
         HashSet<Proteoform> hitProteoforms = new HashSet<>();
-        ProteoformMatching matcher = null;
+        ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
 
         // Note: In this function the duplicate protein identifiers are removed by
         // adding the whole input list to a set.
@@ -755,18 +738,6 @@ public class Search {
                 else
                     sendWarning(INVALID_ROW, row);
             }
-        }
-
-        switch (matchType) {
-            case FLEXIBLE:
-                matcher = new ProteoformMatchingTypeFlexible();
-                break;
-            case ONE:
-                matcher = new ProteoformMatchingOne();
-                break;
-            case STRICT:
-                matcher = new ProteoformMatchingStrict();
-                break;
         }
 
         for (Proteoform proteoform : inputProteoforms) {

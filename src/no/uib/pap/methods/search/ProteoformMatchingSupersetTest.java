@@ -1,20 +1,35 @@
 package no.uib.pap.methods.search;
 
-import com.google.common.collect.SetMultimap;
 import no.uib.pap.model.Proteoform;
 import no.uib.pap.model.ProteoformFormat;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ProteoformMatchingOneNoTypesTest {
-	static ProteoformFormat pf;
+/*
+Query to check the examples:
+MATCH (pe:PhysicalEntity)-[:referenceEntity]->(re:ReferenceEntity)
+WHERE pe.speciesName = "Homo sapiens" AND re.databaseName = "UniProt" AND re.identifier = "P60880"
+WITH DISTINCT pe, re OPTIONAL MATCH (pe)-[:hasModifiedResidue]->(tm:TranslationalModification)-[:psiMod]->(mod:PsiMod)
+WITH DISTINCT pe, (CASE WHEN size(re.variantIdentifier) > 0 THEN re.variantIdentifier ELSE re.identifier END) as proteinAccession, tm.coordinate as coordinate, mod.identifier as inputType ORDER BY inputType, coordinate
+WITH DISTINCT pe, proteinAccession, COLLECT(inputType + ":" + CASE WHEN coordinate IS NOT NULL THEN coordinate ELSE "null" END) AS ptms
+RETURN DISTINCT proteinAccession,
+				pe.stId as ewas,
+				(CASE WHEN pe.startCoordinate IS NOT NULL AND pe.startCoordinate <> -1 THEN pe.startCoordinate ELSE "null" END) as startCoordinate,
+                (CASE WHEN pe.endCoordinate IS NOT NULL AND pe.endCoordinate <> -1 THEN pe.endCoordinate ELSE "null" END) as endCoordinate,
+                ptms ORDER BY proteinAccession, startCoordinate, endCoordinate
+ */
+
+/**
+ * SUPERSET match: All the reference PTMs should be specified in the input. If there are more in the input it still matches.
+ * In other words, all ptms match unless the accession is diferent or is missing at least one ptm of the reference.
+ */
+class ProteoformMatchingSupersetTest {
+
+    static ProteoformFormat pf;
     static ProteoformMatching matcher;
     static Proteoform iP, rP;
     static Long margin = 0L;
@@ -22,8 +37,8 @@ class ProteoformMatchingOneNoTypesTest {
     @BeforeAll
     static void setUp() {
         pf = ProteoformFormat.SIMPLE;
-        matcher = new ProteoformMatchingOne(false);
-        assertEquals(ProteoformMatchingOne.class, matcher.getClass());
+        matcher = new ProteoformMatchingSuperset(true);
+        assertEquals(ProteoformMatchingSuperset.class, matcher.getClass());
     }
 
     @Test
@@ -70,8 +85,8 @@ class ProteoformMatchingOneNoTypesTest {
             rP = pf.getProteoform("A2RUS2;01234:12");
             assertTrue(matcher.matches(iP, rP, margin));
 
-            iP = pf.getProteoform("A2RUS2;00046:490");
-            rP = pf.getProteoform("A2RUS2;00000:null,00046:490");
+            iP = pf.getProteoform("A2RUS2;01234:12,00046:null,00046:1,00046:null");
+            rP = pf.getProteoform("A2RUS2");
             assertTrue(matcher.matches(iP, rP, margin));
 
             // These pass because the input contains all the ptms of the reference
@@ -92,20 +107,9 @@ class ProteoformMatchingOneNoTypesTest {
             rP = pf.getProteoform("A2RUS2;01234:12,00046:null,00046:null,00046:null");
             assertTrue(matcher.matches(iP, rP, margin));
 
-            iP = pf.getProteoform("A2RUS2-2;00046:472");
-            rP = pf.getProteoform("A2RUS2-2;00046:472,00046:490");
-            assertTrue(matcher.matches(iP, rP, margin));
-
-            iP = pf.getProteoform("A2RUS2-2;00048:null,00046:472");
-            rP = pf.getProteoform("A2RUS2-2;00046:472,00048:490");
-            assertTrue(matcher.matches(iP, rP, margin));
-
-            iP = pf.getProteoform("A2RUS2;01234:12,00046:null,00046:null,00046:null");
-            rP = pf.getProteoform("A2RUS2;01234:12,00046:null,00046:1,00046:null");
-            assertTrue(matcher.matches(iP, rP, margin));
-
-            iP = pf.getProteoform("A2RUS2-2;00048:490,00046:472");
-            rP = pf.getProteoform("A2RUS2-2;00046:472,00046:490");
+            // It has the 2 ptms needed and more
+            iP = pf.getProteoform("A2RUS2-2;00046:472,00046:490,01674:null");
+            rP = pf.getProteoform("A2RUS2-2;00046:472;00046:490");
             assertTrue(matcher.matches(iP, rP, margin));
 
         } catch (ParseException e) {
@@ -179,8 +183,9 @@ class ProteoformMatchingOneNoTypesTest {
         }
     }
 
+
     @Test
-    void noMatchDifferentNumberOfPtmsTest() {
+    void noMatchMissingPtmsInInputTest() {
 
         // They fail because some of the PTMs in the input are not in the reference. They would match if it was the other way around
         try {
@@ -192,8 +197,12 @@ class ProteoformMatchingOneNoTypesTest {
             rP = pf.getProteoform("A2RUS2;00046:472");
             assertFalse(matcher.matches(iP, rP, margin));
 
-            iP = pf.getProteoform("A2RUS2-2;00048:10");
+            iP = pf.getProteoform("A2RUS2-2;00046:472");
             rP = pf.getProteoform("A2RUS2-2;00046:472,00046:490");
+            assertFalse(matcher.matches(iP, rP, margin));
+
+            iP = pf.getProteoform("A2RUS2-2;00046:472;00046:490");
+            rP = pf.getProteoform("A2RUS2-2;00046:472,00046:490,01674:null");
             assertFalse(matcher.matches(iP, rP, margin));
 
         } catch (ParseException e) {
@@ -202,28 +211,20 @@ class ProteoformMatchingOneNoTypesTest {
     }
 
     @Test
-    void matchDifferentPtmTypesTest() {
+    void noMatchDifferentPtmTypesTest() {
 
         try {
             iP = pf.getProteoform("A2RUS2;00048:472");
             rP = pf.getProteoform("A2RUS2;00046:472");
-            assertTrue(matcher.matches(iP, rP, margin));
+            assertFalse(matcher.matches(iP, rP, margin));
 
             iP = pf.getProteoform("A2RUS2;00000:472");
             rP = pf.getProteoform("A2RUS2;00046:472");
-            assertTrue(matcher.matches(iP, rP, margin));
+            assertFalse(matcher.matches(iP, rP, margin));
 
-            iP = pf.getProteoform("A2RUS2;00000:472,00000:453");
-            rP = pf.getProteoform("A2RUS2;00000:453,00046:472");
-            assertTrue(matcher.matches(iP, rP, margin));
-
-            iP = pf.getProteoform("A2RUS2;00000:472,00000:453");
-            rP = pf.getProteoform("A2RUS2;00000:460,00046:472");
-            assertTrue(matcher.matches(iP, rP, margin));
-
-            iP = pf.getProteoform("A2RUS2;00000:472,00000:453");
-            rP = pf.getProteoform("A2RUS2;00000:460,00046:472");
-            assertTrue(matcher.matches(iP, rP, margin));
+            iP = pf.getProteoform("A2RUS2-2;00048:490,00046:472");
+            rP = pf.getProteoform("A2RUS2-2;00046:472,00046:490");
+            assertFalse(matcher.matches(iP, rP, margin));
 
         } catch (ParseException e) {
             fail("Proteoforms should be parsed correctly.");
@@ -238,9 +239,18 @@ class ProteoformMatchingOneNoTypesTest {
             rP = pf.getProteoform("A2RUS2;00048:472");
             assertFalse(matcher.matches(iP, rP, margin));
 
-            // This one matches because the null is a wild card for the 472
+            //This one matches because the null is a wildcard that matches the 472
             iP = pf.getProteoform("A2RUS2;00046:null");
             rP = pf.getProteoform("A2RUS2;00046:472");
+            assertTrue(matcher.matches(iP, rP, margin));
+
+            iP = pf.getProteoform("A2RUS2-2;00048:null,00046:472");
+            rP = pf.getProteoform("A2RUS2-2;00046:472,00048:490");
+            assertTrue(matcher.matches(iP, rP, margin));
+
+            // This one matches because the null serves as wildcard to get the 00046:1
+            iP = pf.getProteoform("A2RUS2;01234:12,00046:null,00046:null,00046:null");
+            rP = pf.getProteoform("A2RUS2;01234:12,00046:null,00046:1,00046:null");
             assertTrue(matcher.matches(iP, rP, margin));
 
         } catch (ParseException e) {

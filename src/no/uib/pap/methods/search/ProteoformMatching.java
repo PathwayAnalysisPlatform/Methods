@@ -1,5 +1,6 @@
 package no.uib.pap.methods.search;
 
+import no.uib.pap.model.MatchType;
 import no.uib.pap.model.Proteoform;
 
 public abstract class ProteoformMatching {
@@ -24,4 +25,33 @@ public abstract class ProteoformMatching {
 		}
 		return true;
 	}
+
+	public static ProteoformMatching getInstance(MatchType matchType){
+		ProteoformMatching matcher = null;
+		switch (matchType) {
+			case SUPERSET:
+				matcher = new ProteoformMatchingSuperset(true);
+				break;
+			case SUPERSET_NO_TYPES:
+				matcher = new ProteoformMatchingSuperset(false);
+				break;
+			case SUBSET:
+				matcher = new ProteoformMatchingSubset(true);
+				break;
+			case SUBSET_NO_TYPES:
+				matcher = new ProteoformMatchingSuperset(false);
+				break;
+			case ONE:
+				matcher = new ProteoformMatchingOne(true);
+				break;
+			case ONE_NO_TYPES:
+				matcher = new ProteoformMatchingOne(false);
+				break;
+			case STRICT:
+				matcher = new ProteoformMatchingStrict();
+				break;
+		}
+		return matcher;
+	}
+
 }

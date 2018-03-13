@@ -36,9 +36,8 @@ class ProteoformMatchingOneTest {
     @BeforeAll
     static void setUp() {
         pf = ProteoformFormat.SIMPLE;
-        matcher = new ProteoformMatchingOne();
+        matcher = new ProteoformMatchingOne(true);
         assertEquals(ProteoformMatchingOne.class, matcher.getClass());
-		ProteoformMatching matcher = new ProteoformMatchingOne();
     }
 
     @Test
