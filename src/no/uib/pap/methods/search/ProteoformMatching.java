@@ -39,7 +39,7 @@ public abstract class ProteoformMatching {
 				matcher = new ProteoformMatchingSubset(true);
 				break;
 			case SUBSET_NO_TYPES:
-				matcher = new ProteoformMatchingSuperset(false);
+				matcher = new ProteoformMatchingSubset(false);
 				break;
 			case ONE:
 				matcher = new ProteoformMatchingOne(true);
