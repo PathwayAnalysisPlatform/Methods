@@ -108,7 +108,7 @@ public class Search {
         System.out.println("\nRequested " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 
@@ -194,7 +194,7 @@ public class Search {
         System.out.println("Requested " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 
@@ -279,12 +279,30 @@ public class Search {
         System.out.println("Requested " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 
+
+    /**
+     * Maps rsids to protein to reaction to pathways.
+     * Usually only for rsids in a specific chromosome, but uses all the mapping contained at the imapRsIdsToProteins parameter.
+     * Fills the hitPathways and the hitProteins from the parameter structures.
+     *
+     * @param input                          Set of unique identifiers
+     * @param iReactions                     Structure to read reactions stId and displayName
+     * @param iPathways                      Here add the reactions and entities found
+     * @param imapRsIdsToProteins            The mapping for one chromosome
+     * @param imapProteinsToReactions        Generic mapping all proteins to all reactions
+     * @param imapReactionsToPathways        Generic mapping all reactions to all pathways
+     * @param imapPathwaysToTopLevelPathways Generic mapping all pathways to top level pathways
+     * @param topLevelPathways               Flag if top level pathways should be used
+     * @param hitProteins                    Structure to keep which proteins were hit by the search
+     * @param hitPathways                    Structure to keep which pathways were hit by the search
+     * @return  Mapping from rsids to pathways, message errors
+     */
     public static Pair<List<String[]>, MessageStatus> searchWithRsId(
-            List<String> input,
+            HashSet<String> input,
             ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
             ImmutableSetMultimap<String, String> imapRsIdsToProteins,
@@ -297,20 +315,32 @@ public class Search {
 
         List<String[]> result = new ArrayList<String[]>();
 
-        int row = 0;
+        // If a variant is found then discard it from the variant set
         for (String rsid : input) {
-            row++;
-            if (rsid.isEmpty()) {
-                sendWarning(EMPTY_ROW, row);
-                continue;
-            }
-            if (!matches_Rsid(rsid)) {
-                sendWarning(INVALID_ROW, row);
-                continue;
-            }
+//            if (imapRsIdsToProteins.containsKey(rsid)) {
+//                System.out.println("Analysing: " + rsid);
+//            }
             for (String protein : imapRsIdsToProteins.get(rsid)) {
+                //System.out.println("Mapped to: " + protein);
+                hitProteins.add(protein);
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+
+                        hitPathways.add(pathwayStId);
+                        Pathway pathway = iPathways.get(pathwayStId);
+                        pathway.getReactionsFound().add(reaction);
+                        try {
+                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
+                        } catch (ParseException e) {
+                            return new MutablePair<List<String[]>, MessageStatus>(
+                                    result,
+                                    new MessageStatus(
+                                            "Failed",
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
+                                            ""));
+                        }
 
                         if (topLevelPathways) {
                             if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
@@ -354,20 +384,39 @@ public class Search {
                     }
                 }
             }
+
         }
 
-        System.out.println("Requested " + hitProteins.size() + " proteins.");
+        System.out.println("Found " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 
+    /**
+     * Maps variants composed by [chr, bp] to protein to reaction to pathways.
+     * Only maps a specific chromosome at a time, but uses all the mapping contained at the imapRsIdsToProteins parameter.
+     * Fills the hitPathways and the hitProteins from the parameter structures.
+     *
+     * @param bpSet                          Set of base pairs in the desired chromosome
+     * @param iReactions                     Structure to read reactions stId and displayName
+     * @param iPathways                      Here add the reactions and entities found
+     * @param imapChrBpToProteins            The mapping for one chromosome
+     * @param imapProteinsToReactions        Generic mapping all proteins to all reactions
+     * @param imapReactionsToPathways        Generic mapping all reactions to all pathways
+     * @param imapPathwaysToTopLevelPathways Generic mapping all pathways to top level pathways
+     * @param topLevelPathways               Flag if top level pathways should be used
+     * @param hitProteins                    Structure to keep which proteins were hit by the search
+     * @param hitPathways                    Structure to keep which pathways were hit by the search
+     * @return  Mapping from rsids to pathways, message errors
+     */
     public static Pair<List<String[]>, MessageStatus> searchWithChrBp(
-            List<String> input,
+            int chr,
+            Set<Long> bpSet,
             ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, String> imapChrBpToProteins,
+            ImmutableSetMultimap<Long, String> imapChrBpToProteins,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
@@ -378,27 +427,35 @@ public class Search {
         List<String[]> result = new ArrayList<String[]>();
 
         int row = 0;
-        for (String line : input) {
-            row++;
-            if (line.isEmpty()) {
-                sendWarning(EMPTY_ROW, row);
-                continue;
-            }
-            if (!matches_ChrBp(line)) {
-                sendWarning(INVALID_ROW, row);
-                continue;
-            }
+        for (Long bp : bpSet) {
+            for (String protein : imapChrBpToProteins.get(bp)) {
+                hitProteins.add(protein);
 
-            Snp snp = getSnpFromChrBp(line);
-            for (String protein : imapChrBpToProteins.get(snp.getChr() + "_" + snp.getBp())) {
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+
+                        hitPathways.add(pathwayStId);
+                        Pathway pathway = iPathways.get(pathwayStId);
+                        pathway.getReactionsFound().add(reaction);
+                        try {
+                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
+                        } catch (ParseException e) {
+                            return new MutablePair<List<String[]>, MessageStatus>(
+                                    result,
+                                    new MessageStatus(
+                                            "Failed",
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
+                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
+                                            ""));
+                        }
 
                         if (topLevelPathways) {
                             if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
                                 for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
                                     String[] values = {
-                                            snp.getChr() + "+" + snp.getBp(),
+                                            String.valueOf(chr),
+                                            String.valueOf(bp),
                                             protein,
                                             reaction,
                                             iReactions.get(reaction).getDisplayName(),
@@ -411,7 +468,8 @@ public class Search {
                                 }
                             } else {
                                 String[] values = {
-                                        snp.getChr() + "+" + snp.getBp(),
+                                        String.valueOf(chr),
+                                        String.valueOf(bp),
                                         protein,
                                         reaction,
                                         iReactions.get(reaction).getDisplayName(),
@@ -424,7 +482,8 @@ public class Search {
                             }
                         } else {
                             String[] values = {
-                                    snp.getChr() + "+" + snp.getBp(),
+                                    String.valueOf(chr),
+                                    String.valueOf(bp),
                                     protein,
                                     reaction,
                                     iReactions.get(reaction).getDisplayName(),
@@ -438,10 +497,10 @@ public class Search {
             }
         }
 
-        System.out.println("Requested " + hitProteins.size() + " proteins.");
+        System.out.println("Found " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 
@@ -460,7 +519,7 @@ public class Search {
             List<String> input,
             ImmutableMap<String, Reaction> iReactions,
             ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, String> imapChrBpToProteins,
+            ImmutableSetMultimap<Long, String> imapChrBpToProteins,
             ImmutableSetMultimap<String, String> imapProteinsToReactions,
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
@@ -487,7 +546,7 @@ public class Search {
             }
 
             Snp snp = getSnpFromChrBp(line);
-            for (String protein : imapChrBpToProteins.get(snp.getChr() + "_" + snp.getBp())) {
+            for (String protein : imapChrBpToProteins.get(snp.getBp())) {
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
                         if (topLevelPathways) {
@@ -537,7 +596,7 @@ public class Search {
         System.out.println("Requested " + hitProteins.size() + " proteins.");
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 
@@ -646,7 +705,7 @@ public class Search {
         }
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 
@@ -795,7 +854,7 @@ public class Search {
         }
 
         MessageStatus status = null;
-        status = new MessageStatus("Sucess", 0, 0, "", "");
+        status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
     }
 }

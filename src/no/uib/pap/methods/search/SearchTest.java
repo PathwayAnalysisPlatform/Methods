@@ -16,9 +16,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,7 +40,7 @@ class SearchTest {
     private static ImmutableSetMultimap<String, Proteoform> imapProteinsToProteoforms = null;
     private static ImmutableSetMultimap<Proteoform, String> imapProteoformsToReactions = null;
     private static ImmutableSetMultimap<String, String> imapRsIdsToProteins = null;
-    private static ImmutableSetMultimap<String, String> imapChrBpToProteins = null;
+    private static ImmutableSetMultimap<Long, String> imapChrBpToProteins = null;
     private static ImmutableSetMultimap<String, String> imapReactionsToParticipants = null;
     private static ImmutableSetMultimap<String, String> imapProteinsToComplexes = null;
     private static ImmutableSetMultimap<String, String> imapComplexesToParticipants = null;
@@ -59,8 +57,6 @@ class SearchTest {
         imapPathwaysToTopLevelPathways = (ImmutableSetMultimap<String, String>) getSerializedObject("imapPathwaysToTopLevelPathways.gz");
         imapProteinsToProteoforms = (ImmutableSetMultimap<String, Proteoform>) getSerializedObject("imapProteinsToProteoforms.gz");
         imapProteoformsToReactions = (ImmutableSetMultimap<Proteoform, String>) getSerializedObject("imapProteoformsToReactions.gz");
-//        imapRsIdsToProteins = (ImmutableSetMultimap<String,String>) getSerializedObject("imapRsIdsToProteins.gz");
-//        imapChrBpToProteins = (ImmutableSetMultimap<String,String>) getSerializedObject("imapChrBpToProteins.gz");
         imapProteinsToComplexes = (ImmutableSetMultimap<String, String>) getSerializedObject("imapProteinsToComplexes.gz");
         imapComplexesToParticipants = (ImmutableSetMultimap<String, String>) getSerializedObject("imapComplexesToComponents.gz");
     }
@@ -349,21 +345,6 @@ class SearchTest {
     }
 
     @Test
-    void searchWithRsId() {
-        // TODO Write genetic variants test
-    }
-
-    @Test
-    void searchWithChrBp() {
-        //TODO Write genetic variants test
-    }
-
-    @Test
-    void searchWithVCF() {
-        //TODO Write genetic variants test
-    }
-
-    @Test
     void searchWithProteoformTest() throws IOException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
                 Files.readLines(new File(resourcesPath + "input/ReactomeAllProteoformsSimple.csv"), Charset.defaultCharset()),
@@ -555,6 +536,119 @@ class SearchTest {
             ex.printStackTrace();
         }
         return obj;
+    }
+
+    @Test
+    void searchWithRsId() {
+        HashSet<String> input = new HashSet<>();
+        input.add("rs121918101"); //P01308 not found
+        input.add("rs28933985"); //P01308 not found
+        input.add("rs10840447"); //P01308
+        input.add("rs7110099"); //P01308
+        input.add("rs555583938"); //P01308
+
+        // Search in the wrong chromosome --> No hits
+        imapRsIdsToProteins = (ImmutableSetMultimap<String, String>) getSerializedObject("imapRsIdsToProteins22.gz");
+        Search.searchWithRsId(
+                input,
+                iReactions,
+                iPathways,
+                imapRsIdsToProteins,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(5, input.size());
+        assertEquals(0, hitProteins.size());
+        assertEquals(0, hitPathways.size());
+
+        // Search in the right chromosome --> find hits
+        imapRsIdsToProteins = (ImmutableSetMultimap<String, String>) getSerializedObject("imapRsIdsToProteins11.gz");
+        Search.searchWithRsId(
+                input,
+                iReactions,
+                iPathways,
+                imapRsIdsToProteins,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(5, input.size());
+        assertEquals(1, hitProteins.size());
+        assertTrue(hitProteins.contains("P01308"));
+        assertEquals(29, hitPathways.size());
+        assertTrue(hitPathways.contains("R-HSA-264876"));
+        assertTrue(hitPathways.contains("R-HSA-74749"));
+    }
+
+    @Test
+    void searchWithChr_Bp() {
+        Set<Long> input = new HashSet<>();
+        input.add(2176042L); //P01308
+        input.add(2176105L); //P01308
+        input.add(2176134L); //P01308
+        input.add(-1L); //Not found
+
+        // Search in the wrong chromosome --> No hits
+        imapChrBpToProteins = (ImmutableSetMultimap<Long, String>) getSerializedObject("imapChrBpToProteins22.gz");
+        Search.searchWithChrBp(
+                22,
+                input,
+                iReactions,
+                iPathways,
+                imapChrBpToProteins,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(4, input.size());
+        assertEquals(0, hitProteins.size());
+        assertEquals(0, hitPathways.size());
+
+        // Search in the right chromosome --> find hits
+        imapChrBpToProteins = (ImmutableSetMultimap<Long, String>) getSerializedObject("imapChrBpToProteins11.gz");
+        Search.searchWithChrBp(
+                11,
+                input,
+                iReactions,
+                iPathways,
+                imapChrBpToProteins,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(4, input.size());
+        assertEquals(1, hitProteins.size());
+        assertTrue(hitProteins.contains("P01308"));
+        assertEquals(29, hitPathways.size());
+        assertTrue(hitPathways.contains("R-HSA-264876"));
+        assertTrue(hitPathways.contains("R-HSA-74749"));
+    }
+
+    @Test
+    void searchWithChrBp() {
+        //TODO Write genetic variants test
+    }
+
+    @Test
+    void searchWithVCF() {
+        //TODO Write genetic variants test
     }
 
 }
