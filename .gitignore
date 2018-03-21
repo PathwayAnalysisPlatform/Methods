@@ -17,6 +17,8 @@ nb-configuration.xml
 *.iml
 *.iws
 *.ipr
+_windows/
+*.xml
 
 # Maven
 log/

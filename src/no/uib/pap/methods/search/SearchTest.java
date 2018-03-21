@@ -442,6 +442,58 @@ class SearchTest {
     }
 
     @Test
+    void singleProteoformSearchTest() throws IOException, ParseException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/SingleProteoform.txt"), Charset.defaultCharset()),
+                MatchType.SUPERSET,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertEquals(11, hitPathways.size());
+
+        assertEquals(2, iPathways.get("R-HSA-168249").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;00048:127,00048:132,00048:171,00048:191,00048:226")));
+        assertTrue(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;")));
+        assertFalse(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561;00048:156,00048:161,00048:200,00048:220,00048:255")));
+        assertFalse(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561;00048:200,00048:220")));
+    }
+
+    @Test
+    void singleProteoformSearchStrictTest() throws IOException, ParseException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/SingleProteoform.txt"), Charset.defaultCharset()),
+                MatchType.STRICT,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertEquals(11, hitPathways.size());
+
+        assertEquals(1, iPathways.get("R-HSA-168249").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;00048:127,00048:132,00048:171,00048:191,00048:226")));
+        assertFalse(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;")));
+    }
+
+    @Test
     void searchWithPeptideFillHitsTest1() {
         List<String> input = new ArrayList<>();
         input.add("LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN");
