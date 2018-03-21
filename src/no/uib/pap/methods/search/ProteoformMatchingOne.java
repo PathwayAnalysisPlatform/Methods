@@ -16,15 +16,15 @@ public class ProteoformMatchingOne extends ProteoformMatching {
     public Boolean matches(Proteoform iP, Proteoform rP, Long margin) {
 
         // Check the uniprot accession, including the isoform matches
-        if(iP.getUniProtAcc() == null){
+        if(iP.getUniProtAccWithIsoform() == null){
             throw new IllegalArgumentException();
         }
 
-        if(rP.getUniProtAcc() == null){
+        if(rP.getUniProtAccWithIsoform() == null){
             throw new IllegalArgumentException();
         }
 
-        if(!iP.getUniProtAcc().equals(rP.getUniProtAcc())){
+        if(!iP.getUniProtAccWithIsoform().equals(rP.getUniProtAccWithIsoform())){
             return false;
         }
 

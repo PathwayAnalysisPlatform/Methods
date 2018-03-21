@@ -1,21 +1,13 @@
 package no.uib.pap.methods.analysis.ora;
 
-import java.text.ParseException;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.TreeSet;
-
-import no.uib.pap.model.Error;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.math.distribution.BinomialDistributionImpl;
-
 import com.google.common.collect.ImmutableMap;
-
 import no.uib.pap.model.MessageStatus;
 import no.uib.pap.model.Pathway;
-import no.uib.pap.model.ProteoformFormat;
+import org.apache.commons.math3.distribution.BinomialDistribution;
+
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.TreeSet;
 
 public class Analysis {
 
@@ -30,7 +22,7 @@ public class Analysis {
     public static MessageStatus analysis(
             ImmutableMap<String, Pathway> iPathways,
             int populationSize,
-            HashSet<String> hitProteins,
+            TreeSet<String> hitProteins,
             HashSet<String> hitPathways) {
 
         // Traverse all the iPathways
@@ -48,7 +40,7 @@ public class Analysis {
             int k = pathway.getEntitiesFound().size(); // Sucessful trials: Entities found participating in the pathway
             double p = pathway.getNumEntitiesTotal() / (double) populationSize; // Probability of sucess in each trial: The entity is a participant in the pathway
 
-            BinomialDistributionImpl binomialDistribution = new BinomialDistributionImpl(hitProteins.size(), p); // Given n trials with probability p of success
+            BinomialDistribution binomialDistribution = new BinomialDistribution(hitProteins.size(), p); // Given n trials with probability p of success
             pathway.setpValue(binomialDistribution.probability(k)); // Probability of k successful trials
         }
 

@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SearchTest {
 
     static String resourcesPath = "../../PathwayMatcher/resources/";
-    static HashSet<String> hitProteins = null;
+    static TreeSet<String> hitProteins = null;
     static HashSet<String> hitPathways = null;
 
     private static ImmutableMap<String, Reaction> iReactions; // Reaction stId to Reaction displayName
@@ -63,7 +63,7 @@ class SearchTest {
 
     @BeforeEach
     void setUp() {
-        hitProteins = new HashSet<>();
+        hitProteins = new TreeSet<>();
         hitPathways = new HashSet<>();
     }
 
@@ -361,7 +361,7 @@ class SearchTest {
                 hitPathways
         );
 
-        assertEquals(441275, result.getLeft().size());
+        assertEquals(456138, result.getLeft().size());
     }
 
     @Test
@@ -639,11 +639,6 @@ class SearchTest {
         assertEquals(29, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-264876"));
         assertTrue(hitPathways.contains("R-HSA-74749"));
-    }
-
-    @Test
-    void searchWithChrBp() {
-        //TODO Write genetic variants test
     }
 
     @Test

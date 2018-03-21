@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import no.uib.pap.methods.search.Search;
 import no.uib.pap.model.*;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AnalysisTest {
 
     static String resourcesPath = "../../PathwayMatcher/resources/";
-    static HashSet<String> hitProteins = null;
+    static TreeSet<String> hitProteins = null;
     static HashSet<String> hitPathways = null;
 
     private static ImmutableMap<String, Reaction> iReactions; // Reaction stId to Reaction displayName
@@ -41,7 +39,7 @@ class AnalysisTest {
     private static ImmutableSetMultimap<String, String> imapChrBpToProteins = null;
     private static ImmutableSetMultimap<String, String> imapReactionsToParticipants = null;
     private static ImmutableSetMultimap<String, String> imapProteinsToComplexes = null;
-    private static ImmutableSetMultimap<String, String> imapComplexesToParticipants = null;
+    private static ImmutableSetMultimap<String, String> imapComplexesToComponents = null;
 
     @BeforeAll
     static void loadStaticMapping() {
@@ -57,14 +55,13 @@ class AnalysisTest {
         imapProteoformsToReactions = (ImmutableSetMultimap<Proteoform, String>) getSerializedObject("imapProteoformsToReactions.gz");
 //        imapRsIdsToProteins = (ImmutableSetMultimap<String,String>) getSerializedObject("imapRsIdsToProteins.gz");
 //        imapChrBpToProteins = (ImmutableSetMultimap<String,String>) getSerializedObject("imapChrBpToProteins.gz");
-        imapReactionsToParticipants = (ImmutableSetMultimap<String, String>) getSerializedObject("imapReactionsToParticipants.gz");
         imapProteinsToComplexes = (ImmutableSetMultimap<String, String>) getSerializedObject("imapProteinsToComplexes.gz");
-        imapComplexesToParticipants = (ImmutableSetMultimap<String, String>) getSerializedObject("imapComplexesToParticipants.gz");
+        imapComplexesToComponents = (ImmutableSetMultimap<String, String>) getSerializedObject("imapComplexesToComponents.gz");
     }
 
     @BeforeEach
     void setUp() {
-        hitProteins = new HashSet<>();
+        hitProteins = new TreeSet<>();
         hitPathways = new HashSet<>();
     }
 
@@ -78,7 +75,7 @@ class AnalysisTest {
     void analysisTest() throws ParseException {
         MessageStatus messageStatus = new MessageStatus("Sucess", 0, 0, "", "");
         HashSet<String> hitPathways = new HashSet<>();
-        HashSet<String> hitProteins = new HashSet<>();
+        TreeSet<String> hitProteins = new TreeSet<>();
         List<String> input = new ArrayList<>();
 
         input.add("P01308");
