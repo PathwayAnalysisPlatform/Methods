@@ -26,6 +26,8 @@ public class Analysis {
             HashSet<String> hitPathways) {
 
         // Traverse all the iPathways
+        int percentage = 0;
+        int processed = 0;
         for (String stId : hitPathways) {
 
             Pathway pathway = iPathways.get(stId);
@@ -42,7 +44,15 @@ public class Analysis {
 
             BinomialDistribution binomialDistribution = new BinomialDistribution(hitProteins.size(), p); // Given n trials with probability p of success
             pathway.setpValue(binomialDistribution.probability(k)); // Probability of k successful trials
+
+            processed++;
+            int newPercentage = processed * 100 / hitPathways.size();
+            if(newPercentage > percentage + 2){
+                System.out.print(newPercentage + "% ");
+                percentage = newPercentage;
+            }
         }
+        System.out.println("\n");
 
         adjustPValues(iPathways, hitPathways);
 
