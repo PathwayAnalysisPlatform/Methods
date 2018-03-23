@@ -299,7 +299,7 @@ public class Search {
      * @param topLevelPathways               Flag if top level pathways should be used
      * @param hitProteins                    Structure to keep which proteins were hit by the search
      * @param hitPathways                    Structure to keep which pathways were hit by the search
-     * @return  Mapping from rsids to pathways, message errors
+     * @return Mapping from rsids to pathways, message errors
      */
     public static Pair<List<String[]>, MessageStatus> searchWithRsId(
             HashSet<String> input,
@@ -409,7 +409,7 @@ public class Search {
      * @param topLevelPathways               Flag if top level pathways should be used
      * @param hitProteins                    Structure to keep which proteins were hit by the search
      * @param hitPathways                    Structure to keep which pathways were hit by the search
-     * @return  Mapping from rsids to pathways, message errors
+     * @return Mapping from rsids to pathways, message errors
      */
     public static Pair<List<String[]>, MessageStatus> searchWithChrBp(
             int chr,
@@ -683,6 +683,7 @@ public class Search {
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
         HashSet<Proteoform> hitProteoforms = new HashSet<>();
         ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
+        List<String> correctedInput = new ArrayList<>();
 
         // Note: In this function the duplicate protein identifiers are removed by
         // adding the whole input list to a set.
@@ -695,13 +696,23 @@ public class Search {
         for (String line : input) {
             row++;
             if (matches_Peptite_And_Mod_Sites(line)) {
-                // Process line
-                for (String protein : getPeptideMapping(line)) {
-                    try {
-                        inputProteoforms.addAll(getProteoforms(line));
-                    } catch (ParseException e) {
-                        e.printStackTrace(); //TODO Replace
+                try {
+                    Proteoform tempProteoform = ProteoformFormat.SIMPLE.getProteoform(line);
+                    for (Pair<String, Integer> pair : getPeptideMappingWithIndex(tempProteoform.getUniProtAcc())) {
+
+                        String uniprot = pair.getLeft();
+                        int index = pair.getRight();
+                        Proteoform correctProteoform = new Proteoform(uniprot);
+
+                        //Correct the positions of the PTMs
+                        for(Pair<String, Long> ptm : tempProteoform.getPtms()){
+                            correctProteoform.addPtm(ptm.getLeft(), ptm.getValue()+index);
+                        }
+
+                        correctedInput.add(correctProteoform.toString(ProteoformFormat.SIMPLE));
                     }
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
             } else {
                 if (line.isEmpty())
@@ -711,62 +722,19 @@ public class Search {
             }
         }
 
-        for (Proteoform proteoform : inputProteoforms) {
-            for (Proteoform refProteoform : imapProteinsToProteoforms.get(proteoform.getUniProtAcc())) {
-                if (matcher.matches(proteoform, refProteoform, margin)) {
-                    hitProteoforms.add(refProteoform);
-                }
-            }
-        }
-
-        for (Proteoform proteoform : hitProteoforms) {
-            for (String reaction : imapProteoformsToReactions.get(proteoform)) {
-                for (String pathway : imapReactionsToPathways.get(reaction)) {
-                    if (topLevelPathways) {
-                        if (imapPathwaysToTopLevelPathways.get(pathway).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathway)) {
-                                String[] values = {
-                                        proteoform.getUniProtAcc(),
-                                        proteoform.toString(ProteoformFormat.SIMPLE),
-                                        reaction,
-                                        iReactions.get(reaction).getDisplayName(),
-                                        pathway,
-                                        iPathways.get(pathway).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
-                                };
-                                result.add(values);
-                            }
-                        } else {
-                            String[] values = {
-                                    proteoform.getUniProtAcc(),
-                                    proteoform.toString(ProteoformFormat.SIMPLE),
-                                    reaction,
-                                    iReactions.get(reaction).getDisplayName(),
-                                    pathway,
-                                    iPathways.get(pathway).getDisplayName(),
-                                    pathway,
-                                    iPathways.get(pathway).getDisplayName()
-                            };
-                            result.add(values);
-                        }
-                    } else {
-                        String[] values = {
-                                proteoform.getUniProtAcc(),
-                                proteoform.toString(ProteoformFormat.SIMPLE),
-                                reaction,
-                                iReactions.get(reaction).getDisplayName(),
-                                pathway,
-                                iPathways.get(pathway).getDisplayName()
-                        };
-                        result.add(values);
-                    }
-                }
-            }
-        }
-
-        MessageStatus status = null;
-        status = new MessageStatus("Success", 0, 0, "", "");
-        return new MutablePair<>(result, status);
+        return searchWithProteoform(
+                correctedInput,
+                matchType,
+                margin,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                topLevelPathways,
+                hitProteins,
+                hitPathways
+        );
     }
 }

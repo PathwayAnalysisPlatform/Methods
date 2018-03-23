@@ -149,6 +149,7 @@ public class PeptideMatcher {
 		mzTolerance = 0.5;
 
 		try {
+			System.out.println("Loading protein sequences...");
 			loadFastaFile(new File(fastaFile));
 		} catch (ClassNotFoundException ex) {
 			System.out.println("Fasta file for peptide mapping was not found."); // TODO Send proper error

@@ -402,6 +402,34 @@ class SearchTest {
     }
 
     @Test
+    void searchWithProteoformsInsulinTest() throws IOException, ParseException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/Insulin.txt"), Charset.defaultCharset()),
+                MatchType.SUPERSET,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertEquals(22, hitPathways.size());
+
+        assertEquals(3, iPathways.get("R-HSA-977225").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+
+
+    }
+
+    @Test
         // Some proteoforms of a protein
     void searchWithProteoformSet2FillHitsTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
@@ -472,6 +500,83 @@ class SearchTest {
     void singleProteoformSearchStrictTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
                 Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/SingleProteoform.txt"), Charset.defaultCharset()),
+                MatchType.STRICT,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertEquals(11, hitPathways.size());
+
+        assertEquals(1, iPathways.get("R-HSA-168249").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;00048:127,00048:132,00048:171,00048:191,00048:226")));
+        assertFalse(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;")));
+    }
+
+    @Test
+    void singleModifiedPeptideSearchTest() throws IOException, ParseException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithModifiedPeptide(
+                Files.readLines(new File(resourcesPath + "input/ModifiedPeptides/SingleModifiedPeptide.txt"), Charset.defaultCharset()),
+                MatchType.SUPERSET,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertEquals(11, hitPathways.size());
+
+        assertEquals(2, iPathways.get("R-HSA-168249").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;00048:127,00048:132,00048:171,00048:191,00048:226")));
+        assertTrue(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;")));
+        assertFalse(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561;00048:156,00048:161,00048:200,00048:220,00048:255")));
+        assertFalse(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561;00048:200,00048:220")));
+    }
+
+    @Test
+    void singleModifiedPeptideSearchStrictTest() throws IOException, ParseException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithModifiedPeptide(
+                Files.readLines(new File(resourcesPath + "input/ModifiedPeptides/SingleModifiedPeptide.txt"), Charset.defaultCharset()),
+                MatchType.STRICT,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertEquals(11, hitPathways.size());
+
+        assertEquals(1, iPathways.get("R-HSA-168249").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;00048:127,00048:132,00048:171,00048:191,00048:226")));
+        assertFalse(iPathways.get("R-HSA-168249").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("O43561-2;")));
+    }
+
+    @Test
+    void singleModifiedPeptideDisplacedSearchTest() throws IOException, ParseException {
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithModifiedPeptide(
+                Files.readLines(new File(resourcesPath + "input/ModifiedPeptides/SingleModifiedPeptideDisplaced.txt"), Charset.defaultCharset()),
                 MatchType.STRICT,
                 0L,
                 iReactions,
@@ -571,7 +676,30 @@ class SearchTest {
     }
 
     @Test
-    void searchWithModifiedPeptide() {
+    void searchWithModifiedPeptideInsulinTest() throws IOException, ParseException {
+
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithModifiedPeptide(
+                Files.readLines(new File(resourcesPath + "input/ModifiedPeptides/Insulin.txt"), Charset.defaultCharset()),
+                MatchType.SUPERSET,
+                0L,
+                iReactions,
+                iPathways,
+                imapProteinsToProteoforms,
+                imapProteoformsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, hitProteins.size());
+        assertEquals(22, hitPathways.size());
+
+        assertEquals(3, iPathways.get("R-HSA-977225").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
+        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
     }
 
     public static Object getSerializedObject(String fileName) {
