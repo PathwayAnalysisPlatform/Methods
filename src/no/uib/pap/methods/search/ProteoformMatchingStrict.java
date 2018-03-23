@@ -23,14 +23,6 @@ public class ProteoformMatchingStrict extends ProteoformMatching {
             return false;
         }
 
-        if (!matches(iP.getStartCoordinate(), rP.getStartCoordinate(), margin)) {
-            return false;
-        }
-
-        if (!matches(iP.getEndCoordinate(), rP.getEndCoordinate(), margin)) {
-            return false;
-        }
-
         if (rP.getPtms().size() != iP.getPtms().size()) {
             return false;
         }
