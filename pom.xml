@@ -35,12 +35,6 @@
 			<version>3.7</version>
 		</dependency>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.6.1</version>
-        </dependency>
-
 		<!-- Apache Commons CSV -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -48,16 +42,18 @@
 			<version>1.5</version>
 		</dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6.1</version>
+        </dependency>
+
 		<!-- The CompOmics utilities package -->
 		<dependency>
 			<groupId>com.compomics</groupId>
 			<artifactId>utilities</artifactId>
 			<version>4.8.9</version>
 			<exclusions>
-				<exclusion>
-					<artifactId>commons-math</artifactId>
-					<groupId>commons-math</groupId>
-				</exclusion>
 				<exclusion>
 					<artifactId>servlet-api</artifactId>
 					<groupId>javax.servlet</groupId>
