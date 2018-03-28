@@ -562,10 +562,8 @@ public class Search {
         }
 
         for (Proteoform proteoform : hitProteoforms) {
-            if (imapProteinsToProteoforms.containsKey(proteoform.getUniProtAcc())) {
-                hitProteins.add(proteoform.getUniProtAcc());
-            }
             for (String reaction : imapProteoformsToReactions.get(proteoform)) {
+                hitProteins.add(proteoform.getUniProtAcc());
                 for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
 
                     hitPathways.add(pathwayStId);

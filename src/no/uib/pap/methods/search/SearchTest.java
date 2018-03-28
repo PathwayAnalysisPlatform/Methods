@@ -361,7 +361,7 @@ class SearchTest {
                 hitPathways
         );
 
-        assertEquals(456138, result.getLeft().size());
+        assertEquals(456120, result.getLeft().size());
     }
 
     @Test
