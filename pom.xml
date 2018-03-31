@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>no.uib</groupId>
 	<artifactId>Methods</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.7</version>
 	<name>Methods</name>
 	<description>Pathway analysis methods</description>
 	<build>

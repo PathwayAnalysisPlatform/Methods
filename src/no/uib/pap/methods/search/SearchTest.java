@@ -42,8 +42,6 @@ class SearchTest {
     private static ImmutableSetMultimap<String, String> imapRsIdsToProteins = null;
     private static ImmutableSetMultimap<Long, String> imapChrBpToProteins = null;
     private static ImmutableSetMultimap<String, String> imapReactionsToParticipants = null;
-    private static ImmutableSetMultimap<String, String> imapProteinsToComplexes = null;
-    private static ImmutableSetMultimap<String, String> imapComplexesToParticipants = null;
 
     @BeforeAll
     static void loadStaticMapping() {
@@ -57,8 +55,6 @@ class SearchTest {
         imapPathwaysToTopLevelPathways = (ImmutableSetMultimap<String, String>) getSerializedObject("imapPathwaysToTopLevelPathways.gz");
         imapProteinsToProteoforms = (ImmutableSetMultimap<String, Proteoform>) getSerializedObject("imapProteinsToProteoforms.gz");
         imapProteoformsToReactions = (ImmutableSetMultimap<Proteoform, String>) getSerializedObject("imapProteoformsToReactions.gz");
-        imapProteinsToComplexes = (ImmutableSetMultimap<String, String>) getSerializedObject("imapProteinsToComplexes.gz");
-        imapComplexesToParticipants = (ImmutableSetMultimap<String, String>) getSerializedObject("imapComplexesToComponents.gz");
     }
 
     @BeforeEach
@@ -820,10 +816,4 @@ class SearchTest {
         assertTrue(hitPathways.contains("R-HSA-264876"));
         assertTrue(hitPathways.contains("R-HSA-74749"));
     }
-
-    @Test
-    void searchWithVCF() {
-        //TODO Write genetic variants test
-    }
-
 }
