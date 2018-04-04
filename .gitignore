@@ -14,7 +14,7 @@ nb-configuration.xml
 
 # Intellij
 .idea/
-*.iml
+#*.iml
 *.iws
 *.ipr
 _windows/
