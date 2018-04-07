@@ -7,7 +7,8 @@
 	<name>Methods</name>
 	<description>Pathway analysis methods</description>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -25,7 +26,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>24.0-jre</version>
+			<version>24.1-jre</version>
 		</dependency>
 
 		<!-- Apache Commons Lang -->
@@ -97,7 +98,7 @@
 		<dependency>
 			<groupId>no.uib.pap</groupId>
 			<artifactId>Model</artifactId>
-			<version>1.7</version>
+			<version>1.7.1</version>
 		</dependency>
 
 	</dependencies>

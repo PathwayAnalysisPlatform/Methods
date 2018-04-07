@@ -43,6 +43,9 @@ class AnalysisTest {
 
     @BeforeAll
     static void loadStaticMapping() {
+
+        System.out.println("The working directory is: " + System.getProperty("user.dir"));
+
         imapReactions = (ImmutableMap<String, Reaction>) getSerializedObject("imapReactions.gz");
         iPathways = (ImmutableMap<String, Pathway>) getSerializedObject("iPathways.gz");
         iProteins = (ImmutableMap<String, String>) getSerializedObject("iProteins.gz");

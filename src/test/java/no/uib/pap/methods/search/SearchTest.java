@@ -123,35 +123,6 @@ class SearchTest {
     }
 
     @Test
-    void searchUniProtCountReactionsAndEntitiesFoundTest() throws ParseException {
-        List<String> input = new ArrayList<>();
-        input.add("P01308");
-
-        Pair<List<String[]>, MessageStatus> result = Search.searchWithUniProt(
-                input,
-                imapReactions,
-                iPathways,
-                imapProteinsToReactions,
-                imapReactionsToPathways,
-                imapPathwaysToTopLevelPathways,
-                true,
-                hitProteins,
-                hitPathways
-        );
-
-        assertEquals(1, iPathways.get("R-HSA-74749").getEntitiesFound().size());
-        assertEquals(1, iPathways.get("R-HSA-74749").getReactionsFound().size());
-        assertTrue(iPathways.get("R-HSA-74749").getReactionsFound().contains("R-HSA-110011"));
-
-        assertEquals(6, iPathways.get("R-HSA-6807878").getReactionsFound().size());
-        assertEquals(1, iPathways.get("R-HSA-6807878").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-6807878").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
-        assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6807875"));
-        assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6809010"));
-        assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6809003"));
-    }
-
-    @Test
     void searchWithGeneFillHitsTest1() {
         List<String> input = new ArrayList<>();
         input.add("GCK");
@@ -180,6 +151,35 @@ class SearchTest {
         assertTrue(hitPathways.contains("R-HSA-74160"));
         assertTrue(hitPathways.contains("R-HSA-1266738"));
 
+    }
+
+    @Test
+    void searchUniProtCountReactionsAndEntitiesFoundTest() throws ParseException {
+        List<String> input = new ArrayList<>();
+        input.add("P01308");
+
+        Pair<List<String[]>, MessageStatus> result = Search.searchWithUniProt(
+                input,
+                imapReactions,
+                iPathways,
+                imapProteinsToReactions,
+                imapReactionsToPathways,
+                imapPathwaysToTopLevelPathways,
+                true,
+                hitProteins,
+                hitPathways
+        );
+
+        assertEquals(1, iPathways.get("R-HSA-74749").getEntitiesFound().size());
+        assertEquals(1, iPathways.get("R-HSA-74749").getReactionsFound().size());
+        assertTrue(iPathways.get("R-HSA-74749").getReactionsFound().contains("R-HSA-110011"));
+
+        assertEquals(6, iPathways.get("R-HSA-6807878").getReactionsFound().size());
+        assertEquals(1, iPathways.get("R-HSA-6807878").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-6807878").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+        assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6807875"));
+        assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6809010"));
+        assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6809003"));
     }
 
     @Test
@@ -430,7 +430,7 @@ class SearchTest {
         // Some proteoforms of a protein
     void searchWithProteoformSet2FillHitsTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
-                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/Set2.csv"), Charset.defaultCharset()),
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/Simple/Set2.csv"), Charset.defaultCharset()),
                 MatchType.SUPERSET,
                 0L,
                 imapReactions,
@@ -469,7 +469,7 @@ class SearchTest {
     @Test
     void singleProteoformSearchTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
-                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/SingleProteoform.txt"), Charset.defaultCharset()),
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/Simple/SingleProteoform.txt"), Charset.defaultCharset()),
                 MatchType.SUPERSET,
                 0L,
                 imapReactions,
@@ -496,7 +496,7 @@ class SearchTest {
     @Test
     void singleProteoformSearchStrictTest() throws IOException, ParseException {
         Pair<List<String[]>, MessageStatus> result = Search.searchWithProteoform(
-                Files.readLines(new File(resourcesPath + "input/Proteoforms/SIMPLE/SingleProteoform.txt"), Charset.defaultCharset()),
+                Files.readLines(new File(resourcesPath + "input/Proteoforms/Simple/SingleProteoform.txt"), Charset.defaultCharset()),
                 MatchType.STRICT,
                 0L,
                 imapReactions,
