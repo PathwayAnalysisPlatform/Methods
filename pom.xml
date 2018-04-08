@@ -3,11 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>no.uib</groupId>
 	<artifactId>Methods</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.7</version>
 	<name>Methods</name>
 	<description>Pathway analysis methods</description>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -25,7 +26,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>24.0-jre</version>
+			<version>24.1-jre</version>
 		</dependency>
 
 		<!-- Apache Commons Lang -->
@@ -94,8 +95,13 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.0.0</version>
         </dependency>
+		<dependency>
+			<groupId>no.uib.pap</groupId>
+			<artifactId>Model</artifactId>
+			<version>1.7.1</version>
+		</dependency>
 
-    </dependencies>
+	</dependencies>
 
 	<repositories>
 		<!-- UGent Genesis Maven 2 repository -->
