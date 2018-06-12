@@ -27,6 +27,7 @@ class SearchTest {
 
     static String resourcesPath = "../../PathwayMatcher/resources/";
     static TreeSet<String> hitProteins = null;
+    static TreeSet<String> hitGenes = null;
     static HashSet<String> hitPathways = null;
 
     private static ImmutableMap<String, Reaction> imapReactions; // Reaction stId to Reaction displayName
@@ -140,7 +141,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                hitGenes
         );
 
         assertEquals(2, hitProteins.size());
@@ -208,7 +210,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                hitGenes
         );
 
         assertEquals(11, hitProteins.size());
