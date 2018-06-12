@@ -13,10 +13,11 @@ public class Analysis {
 
     /**
      * Performs over representation analysis on the hit pathways by the search.
-     * @param iPathways Pathway instances with the found entities and the counts. Results of the analysis go inside this instances.
+     *
+     * @param iPathways      Pathway instances with the found entities and the counts. Results of the analysis go inside this instances.
      * @param populationSize Total number of proteins(counting isoform) or proteoforms in Reactome
-     * @param hitProteins Participant proteins in the hit pathways
-     * @param hitPathways Selected/hit pathways to be analysed
+     * @param hitProteins    Participant proteins in the hit pathways
+     * @param hitPathways    Selected/hit pathways to be analysed
      * @return Error or success status messages
      */
     public static MessageStatus analysis(
@@ -40,14 +41,14 @@ public class Analysis {
 
             // Calculate the proteoformSet pvalue
             int k = pathway.getEntitiesFound().size(); // Sucessful trials: Entities found participating in the pathway
-            double p = pathway.getNumEntitiesTotal() / (double) populationSize; // Probability of sucess in each trial: The entity is a participant in the pathway
+            double p = pathway.getNumEntitiesTotal() / (double) populationSize; // Probability of sucess in each trial: Entities in the pathway / All possible entities
 
             BinomialDistribution binomialDistribution = new BinomialDistribution(hitProteins.size(), p); // Given n trials with probability p of success
-            pathway.setpValue(binomialDistribution.probability(k)); // Probability of k successful trials
+            pathway.setpValue(1 - binomialDistribution.cumulativeProbability(k - 1)); // Probability of k or more successful trials
 
             processed++;
             int newPercentage = processed * 100 / hitPathways.size();
-            if(newPercentage > percentage + 2){
+            if (newPercentage > percentage + 2) {
                 System.out.print(newPercentage + "% ");
                 percentage = newPercentage;
             }

@@ -123,12 +123,14 @@ public class Search {
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
             TreeSet<String> hitProteins,
-            HashSet<String> hitPathways) {
+            HashSet<String> hitPathways,
+            TreeSet<String> hitGenes) {
 
         List<String[]> result = new ArrayList<String[]>();
 
         for (String gene : input) {
             for (String protein : imapGenesToProteins.get(gene.trim())) {
+                hitGenes.add(gene);
                 hitProteins.add(protein);
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
