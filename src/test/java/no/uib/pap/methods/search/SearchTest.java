@@ -29,6 +29,7 @@ class SearchTest {
     static TreeSet<String> hitProteins = null;
     static TreeSet<String> hitGenes = null;
     static HashSet<String> hitPathways = null;
+    static String fastaFile = "../../PathwayMatcher/resources/uniprot-all.fasta";
 
     private static ImmutableMap<String, Reaction> imapReactions; // Reaction stId to Reaction displayName
     private static ImmutableMap<String, Pathway> iPathways; // Pathway stId to Pathway instance
@@ -535,7 +536,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                fastaFile
         );
 
         assertEquals(1, hitProteins.size());
@@ -562,7 +564,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                fastaFile
         );
 
         assertEquals(1, hitProteins.size());
@@ -587,7 +590,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                fastaFile
         );
 
         assertEquals(1, hitProteins.size());
@@ -612,7 +616,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                fastaFile
         );
 
         assertEquals(1, hitProteins.size());
@@ -648,7 +653,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                fastaFile
         );
 
         assertEquals(11, hitProteins.size());
@@ -690,7 +696,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
-                hitPathways
+                hitPathways,
+                fastaFile
         );
 
         assertEquals(1, hitProteins.size());

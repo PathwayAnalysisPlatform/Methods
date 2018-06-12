@@ -23,7 +23,6 @@ import static no.uib.pap.model.Warning.*;
 public class Search {
 
     public static TreeSet<String> hitProteins = new TreeSet<>(); // These are in the reference data
-    static final String fasta = "resources/uniprot-all.fasta";
 
     // Fills the hitProteins set to call the next method
     public static Pair<List<String[]>, MessageStatus> searchWithUniProt(
@@ -630,13 +629,14 @@ public class Search {
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
             TreeSet<String> hitProteins,
-            HashSet<String> hitPathways) {
+            HashSet<String> hitPathways,
+            String fastaFile) {
 
         List<String[]> result = new ArrayList<String[]>();
 
         // Note: In this function the duplicate protein identifiers are removed by
         // adding the whole input list to a set.
-        if (!initializePeptideMapper(fasta)) {
+        if (!initializePeptideMapper(fastaFile)) {
             System.out.println(ERROR_INITIALIZING_PEPTIDE_MAPPER.getMessage());
             System.exit(ERROR_INITIALIZING_PEPTIDE_MAPPER.getCode());
         }
@@ -677,7 +677,8 @@ public class Search {
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
             TreeSet<String> hitProteins,
-            HashSet<String> hitPathways) {
+            HashSet<String> hitPathways,
+            String fastaFile) {
 
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
@@ -687,7 +688,7 @@ public class Search {
 
         // Note: In this function the duplicate protein identifiers are removed by
         // adding the whole input list to a set.
-        if (!initializePeptideMapper(fasta)) {
+        if (!initializePeptideMapper(fastaFile)) {
             System.out.println(ERROR_INITIALIZING_PEPTIDE_MAPPER.getMessage());
             System.exit(ERROR_INITIALIZING_PEPTIDE_MAPPER.getCode());
         }
