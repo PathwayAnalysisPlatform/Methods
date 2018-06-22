@@ -22,8 +22,6 @@ import static no.uib.pap.model.Warning.*;
  */
 public class Search {
 
-    public static TreeSet<String> hitProteins = new TreeSet<>(); // These are in the reference data
-
     // Fills the hitProteins set to call the next method
     public static Pair<List<String[]>, MessageStatus> searchWithUniProt(
             Collection<String> input,
@@ -527,11 +525,11 @@ public class Search {
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
             TreeSet<String> hitProteins,
+            HashSet<Proteoform> hitProteoforms,
             HashSet<String> hitPathways) {
 
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
-        HashSet<Proteoform> hitProteoforms = new HashSet<>();
         ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
 
         assert matcher != null;
@@ -566,7 +564,6 @@ public class Search {
             for (String reaction : imapProteoformsToReactions.get(proteoform)) {
                 hitProteins.add(proteoform.getUniProtAcc());
                 for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-
                     hitPathways.add(pathwayStId);
                     Pathway pathway = iPathways.get(pathwayStId);
                     pathway.getReactionsFound().add(reaction);
@@ -677,12 +674,12 @@ public class Search {
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
             TreeSet<String> hitProteins,
+            HashSet<Proteoform> hitProteoforms,
             HashSet<String> hitPathways,
             String fastaFile) {
 
         List<String[]> result = new ArrayList<String[]>();
         HashSet<Proteoform> inputProteoforms = new HashSet<>();
-        HashSet<Proteoform> hitProteoforms = new HashSet<>();
         ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
         List<String> correctedInput = new ArrayList<>();
 
@@ -735,6 +732,7 @@ public class Search {
                 imapPathwaysToTopLevelPathways,
                 topLevelPathways,
                 hitProteins,
+                hitProteoforms,
                 hitPathways
         );
     }

@@ -27,6 +27,7 @@ class SearchTest {
 
     static String resourcesPath = "../../PathwayMatcher/resources/";
     static TreeSet<String> hitProteins = null;
+    static HashSet<Proteoform> hitProteoforms = null;
     static TreeSet<String> hitGenes = null;
     static HashSet<String> hitPathways = null;
     static String fastaFile = "../../PathwayMatcher/resources/uniprot-all.fasta";
@@ -63,12 +64,14 @@ class SearchTest {
     void setUp() {
         hitProteins = new TreeSet<>();
         hitPathways = new HashSet<>();
+        hitProteoforms = new HashSet<>();
     }
 
     @AfterEach
     void tearDown() {
         hitProteins.clear();
         hitPathways.clear();
+        hitProteoforms.clear();
     }
 
     @Test
@@ -359,6 +362,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways
         );
 
@@ -380,6 +384,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways
         );
 
@@ -416,6 +421,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways
         );
 
@@ -445,6 +451,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways
         );
 
@@ -484,6 +491,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways
         );
 
@@ -511,6 +519,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways
         );
 
@@ -536,6 +545,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways,
                 fastaFile
         );
@@ -564,6 +574,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways,
                 fastaFile
         );
@@ -590,6 +601,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways,
                 fastaFile
         );
@@ -696,6 +708,7 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                hitProteoforms,
                 hitPathways,
                 fastaFile
         );
