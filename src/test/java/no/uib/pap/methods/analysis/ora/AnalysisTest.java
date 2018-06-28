@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AnalysisTest {
 
     static String resourcesPath = "../../PathwayMatcher/resources/";
+    static TreeSet<String> inputProteins = null;
     static TreeSet<String> hitProteins = null;
     static HashSet<String> hitPathways = null;
 
@@ -64,6 +65,7 @@ class AnalysisTest {
 
     @BeforeEach
     void setUp() {
+        inputProteins = new TreeSet<>();
         hitProteins = new TreeSet<>();
         hitPathways = new HashSet<>();
     }
@@ -90,17 +92,18 @@ class AnalysisTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways);
 
         messageStatus = Analysis.analysis(iPathways, imapProteinsToReactions.keySet().size(), hitProteins, hitPathways);
 
-        assertEquals(29, hitPathways.size());
-        assertTrue(hitPathways.contains("R-HSA-1430728"));
-        assertEquals(1, iPathways.get("R-HSA-74749").getReactionsFound().size());
-        assertEquals(1, iPathways.get("R-HSA-74749").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-74749").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
-        assertTrue(iPathways.get("R-HSA-74749").getReactionsFound().contains("R-HSA-110011"));
+        assertEquals(21, hitPathways.size());
+        assertTrue(hitPathways.contains("R-HSA-392499"));
+        assertEquals(11, iPathways.get("R-HSA-392499").getReactionsFound().size());
+        assertEquals(1, iPathways.get("R-HSA-392499").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-392499").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+        assertTrue(iPathways.get("R-HSA-392499").getReactionsFound().contains("R-HSA-6809011"));
 
         assertEquals(0.001349, iPathways.get("R-HSA-5653656").getReactionsRatio(), 0.01);
         assertEquals(0.001199, iPathways.get("R-HSA-5653656").getEntitiesRatio(), 0.01);

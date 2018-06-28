@@ -2,6 +2,7 @@ package no.uib.pap.methods.search;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.TreeMultimap;
 import com.google.common.io.Files;
 import no.uib.pap.model.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,7 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SearchTest {
 
     static String resourcesPath = "../../PathwayMatcher/resources/";
+    static TreeSet<String> inputProteins = null;
     static TreeSet<String> hitProteins = null;
+    static HashSet<Proteoform> inputProteoforms = null;
+    static HashSet<String> matchedRsids = null;
+    static TreeMultimap<Integer, Long> matchedSnps = null;
+    static HashSet<Proteoform> matchedProteoforms = null;
     static HashSet<Proteoform> hitProteoforms = null;
     static TreeSet<String> hitGenes = null;
     static HashSet<String> hitPathways = null;
@@ -62,7 +68,9 @@ class SearchTest {
 
     @BeforeEach
     void setUp() {
+        inputProteins = new TreeSet<>();
         hitProteins = new TreeSet<>();
+        hitGenes = new TreeSet<>();
         hitPathways = new HashSet<>();
         hitProteoforms = new HashSet<>();
     }
@@ -89,13 +97,14 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways
         );
 
         assertEquals(1, hitProteins.size());
         assertTrue(hitProteins.contains("P01308"));
-        assertEquals(29, hitPathways.size());
+        assertEquals(21, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-264876"));
         assertTrue(hitPathways.contains("R-HSA-74749"));
     }
@@ -116,13 +125,14 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways
         );
 
         assertEquals(3, hitProteins.size());
         assertTrue(hitProteins.contains("P10636"));
-        assertEquals(93, hitPathways.size());
+        assertEquals(89, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-8857538"));
         assertTrue(hitPathways.contains("R-HSA-5663202"));
     }
@@ -152,10 +162,9 @@ class SearchTest {
         assertEquals(2, hitProteins.size());
         assertTrue(hitProteins.contains("P35557"));
         assertTrue(hitProteins.contains("P41235"));
-        assertEquals(16, hitPathways.size());
+        assertEquals(9, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-170822"));
         assertTrue(hitPathways.contains("R-HSA-74160"));
-        assertTrue(hitPathways.contains("R-HSA-1266738"));
 
     }
 
@@ -172,6 +181,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways
         );
@@ -180,11 +190,10 @@ class SearchTest {
         assertEquals(1, iPathways.get("R-HSA-74749").getReactionsFound().size());
         assertTrue(iPathways.get("R-HSA-74749").getReactionsFound().contains("R-HSA-110011"));
 
-        assertEquals(6, iPathways.get("R-HSA-6807878").getReactionsFound().size());
+        assertEquals(5, iPathways.get("R-HSA-6807878").getReactionsFound().size());
         assertEquals(1, iPathways.get("R-HSA-6807878").getEntitiesFound().size());
         assertTrue(iPathways.get("R-HSA-6807878").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
         assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6807875"));
-        assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6809010"));
         assertTrue(iPathways.get("R-HSA-6807878").getReactionsFound().contains("R-HSA-6809003"));
     }
 
@@ -221,7 +230,7 @@ class SearchTest {
         assertEquals(11, hitProteins.size());
         assertTrue(hitProteins.contains("P37088"));
         assertTrue(hitProteins.contains("P01137"));
-        assertEquals(125, hitPathways.size());
+        assertEquals(104, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-2672351"));
         assertTrue(hitPathways.contains("R-HSA-76002"));
         assertTrue(hitPathways.contains("R-HSA-449147"));
@@ -234,12 +243,9 @@ class SearchTest {
         assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q14CN2")));
         assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P51170")));
 
-        assertEquals(3, iPathways.get("R-HSA-1266738").getReactionsFound().size());
-        assertEquals(2, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-381283"));
-        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-560491"));
+        assertEquals(1, iPathways.get("R-HSA-1266738").getReactionsFound().size());
+        assertEquals(1, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
         assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q16623")));
-        assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01137")));
     }
 
     @Test
@@ -269,6 +275,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways
         );
@@ -276,10 +283,9 @@ class SearchTest {
         assertEquals(2, hitProteins.size());
         assertTrue(hitProteins.contains("P41235"));
         assertTrue(hitProteins.contains("P35557"));
-        assertEquals(16, hitPathways.size());
+        assertEquals(9, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-170822"));
         assertTrue(hitPathways.contains("R-HSA-74160"));
-        assertTrue(hitPathways.contains("R-HSA-1266738"));
 
         // Check counts
         assertEquals(5, iPathways.get("R-HSA-170822").getReactionsFound().size());
@@ -320,6 +326,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways
         );
@@ -327,7 +334,7 @@ class SearchTest {
         assertEquals(11, hitProteins.size());
         assertTrue(hitProteins.contains("P37088"));
         assertTrue(hitProteins.contains("P01137"));
-        assertEquals(125, hitPathways.size());
+        assertEquals(104, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-2672351"));
         assertTrue(hitPathways.contains("R-HSA-76002"));
         assertTrue(hitPathways.contains("R-HSA-449147"));
@@ -340,12 +347,9 @@ class SearchTest {
         assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q14CN2")));
         assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P51170")));
 
-        assertEquals(3, iPathways.get("R-HSA-1266738").getReactionsFound().size());
-        assertEquals(2, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-381283"));
-        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-560491"));
+        assertEquals(1, iPathways.get("R-HSA-1266738").getReactionsFound().size());
+        assertEquals(1, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
         assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q16623")));
-        assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01137")));
     }
 
     @Test
@@ -362,11 +366,13 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways
         );
 
-        assertEquals(459261, result.getLeft().size());
+        assertEquals(372381, result.getLeft().size());
     }
 
     @Test
@@ -384,25 +390,24 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways
         );
 
         assertEquals(1, hitProteins.size());
-        assertEquals(29, hitPathways.size());
+        assertEquals(21, hitPathways.size());
 
-        assertEquals(3, iPathways.get("R-HSA-977225").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
-        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+        assertEquals(0, iPathways.get("R-HSA-977225").getEntitiesFound().size());
 
-        assertEquals(1, iPathways.get("R-HSA-977225").getReactionsFound().size());
-        assertTrue(iPathways.get("R-HSA-977225").getReactionsFound().contains("R-HSA-977136"));
+        assertEquals(0, iPathways.get("R-HSA-977225").getReactionsFound().size());
+        assertFalse(iPathways.get("R-HSA-977225").getReactionsFound().contains("R-HSA-977136"));
 
         assertEquals(1, iPathways.get("R-HSA-199991").getEntitiesFound().size());
         assertTrue(iPathways.get("R-HSA-199991").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43,00798:95,00798:96,00798:100,00798:109")));
         assertFalse(iPathways.get("R-HSA-199991").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
-        assertEquals(6, iPathways.get("R-HSA-199991").getReactionsFound().size());
+        assertEquals(5, iPathways.get("R-HSA-199991").getReactionsFound().size());
         assertTrue(iPathways.get("R-HSA-199991").getReactionsFound().contains("R-HSA-6807877"));
         assertTrue(iPathways.get("R-HSA-199991").getReactionsFound().contains("R-HSA-6809003"));
     }
@@ -421,16 +426,18 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways
         );
 
         assertEquals(1, hitProteins.size());
-        assertEquals(22, hitPathways.size());
+        assertEquals(14, hitPathways.size());
 
-        assertEquals(3, iPathways.get("R-HSA-977225").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertEquals(0, iPathways.get("R-HSA-977225").getEntitiesFound().size());
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
         assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
 
 
@@ -451,29 +458,31 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways
         );
 
-        assertEquals(22, hitPathways.size());
+        assertEquals(14, hitPathways.size());
         assertEquals(1, hitProteins.size());
 
-        assertEquals(2, iPathways.get("R-HSA-977225").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertEquals(0, iPathways.get("R-HSA-977225").getEntitiesFound().size());
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
+        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
         assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
         assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:95,00798:96,00798:100,00798:109")));
 
-        assertEquals(1, iPathways.get("R-HSA-977225").getReactionsFound().size());
-        assertTrue(iPathways.get("R-HSA-977225").getReactionsFound().contains("R-HSA-977136"));
+        assertEquals(0, iPathways.get("R-HSA-977225").getReactionsFound().size());
+        assertFalse(iPathways.get("R-HSA-977225").getReactionsFound().contains("R-HSA-977136"));
 
-        assertEquals(3, iPathways.get("R-HSA-392499").getEntitiesFound().size());
+        assertEquals(2, iPathways.get("R-HSA-392499").getEntitiesFound().size());
         assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:95,00798:96,00798:100,00798:109")));
-        assertTrue(iPathways.get("R-HSA-392499").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
+        assertFalse(iPathways.get("R-HSA-392499").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
         assertTrue(iPathways.get("R-HSA-392499").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
 
-        assertEquals(10, iPathways.get("R-HSA-392499").getReactionsFound().size());
-        assertTrue(iPathways.get("R-HSA-392499").getReactionsFound().contains("R-HSA-977136"));
+        assertEquals(5, iPathways.get("R-HSA-392499").getReactionsFound().size());
+        assertFalse(iPathways.get("R-HSA-392499").getReactionsFound().contains("R-HSA-977136"));
         assertTrue(iPathways.get("R-HSA-392499").getReactionsFound().contains("R-HSA-9023178"));
     }
 
@@ -491,6 +500,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways
         );
@@ -519,6 +530,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways
         );
@@ -545,6 +558,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways,
                 fastaFile
@@ -574,6 +589,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways,
                 fastaFile
@@ -601,6 +618,8 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways,
                 fastaFile
@@ -627,6 +646,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways,
                 fastaFile
@@ -634,7 +654,7 @@ class SearchTest {
 
         assertEquals(1, hitProteins.size());
         assertTrue(hitProteins.contains("P01308"));
-        assertEquals(29, hitPathways.size());
+        assertEquals(21, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-264876"));
         assertTrue(hitPathways.contains("R-HSA-74749"));
     }
@@ -664,6 +684,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                inputProteins,
                 hitProteins,
                 hitPathways,
                 fastaFile
@@ -672,7 +693,7 @@ class SearchTest {
         assertEquals(11, hitProteins.size());
         assertTrue(hitProteins.contains("P37088"));
         assertTrue(hitProteins.contains("P01137"));
-        assertEquals(125, hitPathways.size());
+        assertEquals(104, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-2672351"));
         assertTrue(hitPathways.contains("R-HSA-76002"));
         assertTrue(hitPathways.contains("R-HSA-449147"));
@@ -685,12 +706,12 @@ class SearchTest {
         assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q14CN2")));
         assertTrue(iPathways.get("R-HSA-2672351").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P51170")));
 
-        assertEquals(3, iPathways.get("R-HSA-1266738").getReactionsFound().size());
-        assertEquals(2, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-381283"));
-        assertTrue(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-560491"));
+        assertEquals(1, iPathways.get("R-HSA-1266738").getReactionsFound().size());
+        assertEquals(1, iPathways.get("R-HSA-1266738").getEntitiesFound().size());
+        assertFalse(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-381283"));
+        assertFalse(iPathways.get("R-HSA-1266738").getReactionsFound().contains("R-HSA-560491"));
         assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("Q16623")));
-        assertTrue(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01137")));
+        assertFalse(iPathways.get("R-HSA-1266738").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01137")));
     }
 
     @Test
@@ -708,18 +729,20 @@ class SearchTest {
                 imapPathwaysToTopLevelPathways,
                 true,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways,
                 fastaFile
         );
 
         assertEquals(1, hitProteins.size());
-        assertEquals(22, hitPathways.size());
+        assertEquals(14, hitPathways.size());
 
-        assertEquals(3, iPathways.get("R-HSA-977225").getEntitiesFound().size());
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
-        assertTrue(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00087:53,00798:31,00798:43")));
-        assertFalse(iPathways.get("R-HSA-977225").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
+        assertEquals(3, iPathways.get("R-HSA-9006934").getEntitiesFound().size());
+        assertTrue(iPathways.get("R-HSA-9006934").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:31,00798:43")));
+        assertTrue(iPathways.get("R-HSA-9006934").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308;00798:95,00798:96,00798:100,00798:109")));
+        assertTrue(iPathways.get("R-HSA-9006934").getEntitiesFound().contains(ProteoformFormat.SIMPLE.getProteoform("P01308")));
     }
 
     public static Object getSerializedObject(String fileName) {
@@ -759,6 +782,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                matchedRsids,
                 hitProteins,
                 hitPathways
         );
@@ -778,6 +802,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                matchedRsids,
                 hitProteins,
                 hitPathways
         );
@@ -785,7 +810,7 @@ class SearchTest {
         assertEquals(5, input.size());
         assertEquals(1, hitProteins.size());
         assertTrue(hitProteins.contains("P01308"));
-        assertEquals(29, hitPathways.size());
+        assertEquals(21, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-264876"));
         assertTrue(hitPathways.contains("R-HSA-74749"));
     }
@@ -810,6 +835,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                matchedSnps,
                 hitProteins,
                 hitPathways
         );
@@ -830,6 +856,7 @@ class SearchTest {
                 imapReactionsToPathways,
                 imapPathwaysToTopLevelPathways,
                 true,
+                matchedSnps,
                 hitProteins,
                 hitPathways
         );
@@ -837,7 +864,7 @@ class SearchTest {
         assertEquals(4, input.size());
         assertEquals(1, hitProteins.size());
         assertTrue(hitProteins.contains("P01308"));
-        assertEquals(29, hitPathways.size());
+        assertEquals(21, hitPathways.size());
         assertTrue(hitPathways.contains("R-HSA-264876"));
         assertTrue(hitPathways.contains("R-HSA-74749"));
     }

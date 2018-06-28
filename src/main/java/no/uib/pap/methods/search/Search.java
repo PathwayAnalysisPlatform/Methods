@@ -2,6 +2,7 @@ package no.uib.pap.methods.search;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.TreeMultimap;
 import no.uib.pap.model.*;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -31,8 +32,28 @@ public class Search {
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
+            Set<String> inputProteins,
             TreeSet<String> hitProteins,
             HashSet<String> hitPathways) {
+
+        // Make sure the structures are empty
+        if (inputProteins == null) {
+            inputProteins = new TreeSet<>();
+        } else {
+            inputProteins.clear();
+        }
+
+        if (hitProteins == null) {
+            hitProteins = new TreeSet<>();
+        } else {
+            hitProteins.clear();
+        }
+
+        if (hitPathways == null) {
+            hitPathways = new HashSet<>();
+        } else {
+            hitPathways.clear();
+        }
 
         List<String[]> result = new ArrayList<String[]>();
 
@@ -41,6 +62,12 @@ public class Search {
 
             if (protein.contains("-")) {
                 protein = protein.substring(0, protein.indexOf("-"));
+            }
+
+            if (matches_Protein_Uniprot(protein)) {
+                inputProteins.add(protein);
+            } else {
+                continue;
             }
 
             for (String reaction : imapProteinsToReactions.get(protein)) {
@@ -102,8 +129,6 @@ public class Search {
             }
         }
 
-        System.out.println("\nRequested " + hitProteins.size() + " proteins.");
-
         MessageStatus status = null;
         status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
@@ -122,6 +147,24 @@ public class Search {
             TreeSet<String> hitProteins,
             HashSet<String> hitPathways,
             TreeSet<String> hitGenes) {
+
+        if (hitGenes == null) {
+            hitGenes = new TreeSet<>();
+        } else {
+            hitGenes.clear();
+        }
+
+        if (hitProteins == null) {
+            hitProteins = new TreeSet<>();
+        } else {
+            hitProteins.clear();
+        }
+
+        if (hitPathways == null) {
+            hitPathways = new HashSet<>();
+        } else {
+            hitPathways.clear();
+        }
 
         List<String[]> result = new ArrayList<String[]>();
 
@@ -190,8 +233,6 @@ public class Search {
             }
         }
 
-        System.out.println("Requested " + hitProteins.size() + " proteins.");
-
         MessageStatus status = null;
         status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
@@ -206,13 +247,39 @@ public class Search {
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
+            Set<String> inputProteins,
             TreeSet<String> hitProteins,
             HashSet<String> hitPathways) {
+
+        if (inputProteins == null) {
+            inputProteins = new TreeSet<>();
+        } else {
+            inputProteins.clear();
+        }
+
+        if (hitProteins == null) {
+            hitProteins = new TreeSet<>();
+        } else {
+            hitProteins.clear();
+        }
+
+        if (hitPathways == null) {
+            hitPathways = new HashSet<>();
+        } else {
+            hitPathways.clear();
+        }
 
         List<String[]> result = new ArrayList<String[]>();
 
         for (String ensembl : input) {
-            for (String protein : imapEnsemblToProteins.get(ensembl.trim())) {
+            ensembl = ensembl.trim();
+            if (matches_Protein_Ensembl(ensembl)) {
+                inputProteins.add(ensembl);
+            } else {
+                continue;
+            }
+
+            for (String protein : imapEnsemblToProteins.get(ensembl)) {
                 hitProteins.add(protein);
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
@@ -275,8 +342,6 @@ public class Search {
             }
         }
 
-        System.out.println("Requested " + hitProteins.size() + " proteins.");
-
         MessageStatus status = null;
         status = new MessageStatus("Success", 0, 0, "", "");
         return new MutablePair<>(result, status);
@@ -309,8 +374,21 @@ public class Search {
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
+            HashSet<String> matchedRsids,
             TreeSet<String> hitProteins,
             HashSet<String> hitPathways) {
+
+        if (matchedRsids == null) {
+            matchedRsids = new HashSet<>();
+        }
+
+        if (hitProteins == null) {
+            hitProteins = new TreeSet<>();
+        }
+
+        if (hitPathways == null) {
+            hitPathways = new HashSet<>();
+        }
 
         List<String[]> result = new ArrayList<String[]>();
 
@@ -321,6 +399,7 @@ public class Search {
 //            }
             for (String protein : imapRsIdsToProteins.get(rsid)) {
                 //System.out.println("Mapped to: " + protein);
+                matchedRsids.add(rsid);
                 hitProteins.add(protein);
                 for (String reaction : imapProteinsToReactions.get(protein)) {
                     for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
@@ -420,14 +499,29 @@ public class Search {
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
+            TreeMultimap<Integer, Long> matchedSnps,
             TreeSet<String> hitProteins,
             HashSet<String> hitPathways) {
+
+        if(matchedSnps == null){
+            matchedSnps = TreeMultimap.create();
+        }
+
+        if (hitProteins == null) {
+            hitProteins = new TreeSet<>();
+        }
+
+        if(hitPathways == null){
+            hitPathways = new HashSet<>();
+        }
 
         List<String[]> result = new ArrayList<String[]>();
 
         int row = 0;
         for (Long bp : bpSet) {
             for (String protein : imapChrBpToProteins.get(bp)) {
+
+                matchedSnps.put(chr, bp);
                 hitProteins.add(protein);
 
                 for (String reaction : imapProteinsToReactions.get(protein)) {
@@ -525,11 +619,42 @@ public class Search {
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
             TreeSet<String> hitProteins,
+            HashSet<Proteoform> inputProteoforms,
+            HashSet<Proteoform> matchedProteoforms,
             HashSet<Proteoform> hitProteoforms,
             HashSet<String> hitPathways) {
 
+        if (inputProteoforms == null) {
+            inputProteoforms = new HashSet<Proteoform>();
+        } else {
+            inputProteoforms.clear();
+        }
+
+        if (matchedProteoforms == null) {
+            matchedProteoforms = new HashSet<Proteoform>();
+        } else {
+            matchedProteoforms.clear();
+        }
+
+        if (hitProteoforms == null) {
+            hitProteoforms = new HashSet<Proteoform>();
+        } else {
+            hitProteoforms.clear();
+        }
+
+        if (hitProteins == null) {
+            hitProteins = new TreeSet<>();
+        } else {
+            hitProteins.clear();
+        }
+
+        if (hitPathways == null) {
+            hitPathways = new HashSet<>();
+        } else {
+            hitPathways.clear();
+        }
+
         List<String[]> result = new ArrayList<String[]>();
-        HashSet<Proteoform> inputProteoforms = new HashSet<>();
         ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
 
         assert matcher != null;
@@ -552,9 +677,11 @@ public class Search {
             }
         }
 
-        for (Proteoform proteoform : inputProteoforms) {
-            for (Proteoform refProteoform : imapProteinsToProteoforms.get(proteoform.getUniProtAcc())) {
-                if (matcher.matches(proteoform, refProteoform, margin)) {
+        // For each proteoform in the input we try to find matches in the reference proteoforms
+        for (Proteoform inputProteoform : inputProteoforms) {
+            for (Proteoform refProteoform : imapProteinsToProteoforms.get(inputProteoform.getUniProtAcc())) {
+                if (matcher.matches(inputProteoform, refProteoform, margin)) {
+                    matchedProteoforms.add(inputProteoform);
                     hitProteoforms.add(refProteoform);
                 }
             }
@@ -625,11 +752,19 @@ public class Search {
             ImmutableSetMultimap<String, String> imapReactionsToPathways,
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
+            Set<String> inputProteins,
             TreeSet<String> hitProteins,
             HashSet<String> hitPathways,
             String fastaFile) {
 
+        if (inputProteins == null) {
+            inputProteins = new HashSet<>();
+        } else{
+            inputProteins.clear();
+        }
+
         List<String[]> result = new ArrayList<String[]>();
+        List<String> mappedProteins = new ArrayList<>();
 
         // Note: In this function the duplicate protein identifiers are removed by
         // adding the whole input list to a set.
@@ -646,9 +781,9 @@ public class Search {
                 // Process line
                 for (String protein : getPeptideMapping(line)) {
                     if (protein.contains("-")) {
-                        hitProteins.add(protein.substring(0, protein.indexOf("-")));
+                        mappedProteins.add(protein.substring(0, protein.indexOf("-")));
                     } else {
-                        hitProteins.add(protein);
+                        mappedProteins.add(protein);
                     }
                 }
             } else {
@@ -659,7 +794,9 @@ public class Search {
             }
         }
 
-        return searchWithUniProt(hitProteins, iReactions, iPathways, imapProteinsToReactions, imapReactionsToPathways, imapPathwaysToTopLevelPathways, topLevelPathways, hitProteins, hitPathways);
+        return searchWithUniProt(mappedProteins, iReactions, iPathways, imapProteinsToReactions,
+                imapReactionsToPathways, imapPathwaysToTopLevelPathways, topLevelPathways,
+                inputProteins, hitProteins, hitPathways);
     }
 
     public static Pair<List<String[]>, MessageStatus> searchWithModifiedPeptide(
@@ -674,12 +811,43 @@ public class Search {
             ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
             Boolean topLevelPathways,
             TreeSet<String> hitProteins,
+            HashSet<Proteoform> inputProteoforms,
+            HashSet<Proteoform> matchedProteoforms,
             HashSet<Proteoform> hitProteoforms,
             HashSet<String> hitPathways,
             String fastaFile) {
 
+        if (inputProteoforms == null) {
+            inputProteoforms = new HashSet<Proteoform>();
+        } else {
+            inputProteoforms.clear();
+        }
+
+        if (matchedProteoforms == null) {
+            matchedProteoforms = new HashSet<Proteoform>();
+        } else {
+            matchedProteoforms.clear();
+        }
+
+        if (hitProteoforms == null) {
+            hitProteoforms = new HashSet<Proteoform>();
+        } else {
+            hitProteoforms.clear();
+        }
+
+        if (hitProteins == null) {
+            hitProteins = new TreeSet<>();
+        } else {
+            hitProteins.clear();
+        }
+
+        if (hitPathways == null) {
+            hitPathways = new HashSet<>();
+        } else {
+            hitPathways.clear();
+        }
+
         List<String[]> result = new ArrayList<String[]>();
-        HashSet<Proteoform> inputProteoforms = new HashSet<>();
         ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
         List<String> correctedInput = new ArrayList<>();
 
@@ -703,8 +871,8 @@ public class Search {
                         Proteoform correctProteoform = new Proteoform(uniprot);
 
                         //Correct the positions of the PTMs
-                        for(Pair<String, Long> ptm : tempProteoform.getPtms()){
-                            correctProteoform.addPtm(ptm.getLeft(), ptm.getValue()+index);
+                        for (Pair<String, Long> ptm : tempProteoform.getPtms()) {
+                            correctProteoform.addPtm(ptm.getLeft(), ptm.getValue() + index);
                         }
 
                         correctedInput.add(correctProteoform.toString(ProteoformFormat.SIMPLE));
@@ -732,6 +900,8 @@ public class Search {
                 imapPathwaysToTopLevelPathways,
                 topLevelPathways,
                 hitProteins,
+                inputProteoforms,
+                matchedProteoforms,
                 hitProteoforms,
                 hitPathways
         );
