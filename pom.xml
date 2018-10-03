@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>no.uib</groupId>
 	<artifactId>Methods</artifactId>
-	<version>1.8.1</version>
+	<version>1.8.2</version>
 	<name>Methods</name>
 	<description>Pathway analysis methods</description>
 	<build>
@@ -98,7 +98,7 @@
 		<dependency>
 			<groupId>no.uib.pap</groupId>
 			<artifactId>Model</artifactId>
-			<version>1.8.1</version>
+			<version>1.8.2</version>
 		</dependency>
 
 	</dependencies>
