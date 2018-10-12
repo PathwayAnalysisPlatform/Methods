@@ -1,12 +1,9 @@
 package no.uib.pap.methods.search;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.TreeMultimap;
 import no.uib.pap.model.*;
-import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.*;
 
@@ -23,328 +20,254 @@ import static no.uib.pap.model.Warning.*;
  */
 public class Search {
 
+    public static SearchResult search(List<String> input, InputType inputType, boolean showTopLevelPathways, Mapping mapping) {
+        return Search.search(input, inputType, showTopLevelPathways, mapping, MatchType.SUPERSET, 0L, "");
+    }
+
+
+    public static SearchResult search(List<String> input, InputType inputType, boolean showTopLevelPathways, Mapping mapping, MatchType matchType, Long margin, String fastaFile) {
+        input.replaceAll(String::trim);
+        switch (inputType) {
+            case GENE:
+            case GENES:
+                return Search.searchWithGene(input, mapping, showTopLevelPathways);
+            case ENSEMBL:
+            case ENSEMBLS:
+                return Search.searchWithEnsembl(input, mapping, showTopLevelPathways);
+            case UNIPROT:
+            case UNIPROTS:
+                return Search.searchWithUniProt(input, mapping, showTopLevelPathways);
+            case PROTEOFORM:
+            case PROTEOFORMS:
+                return Search.searchWithProteoform(input, mapping, showTopLevelPathways, matchType, margin);
+            case RSID:
+            case RSIDS:
+                return Search.searchWithRsId(input, mapping, showTopLevelPathways);
+            case CHRBP:
+            case CHRBPS:
+            case VCF:
+                return Search.searchWithChrBp(input, mapping, showTopLevelPathways);
+            case PEPTIDE:
+            case PEPTIDES:
+                return Search.searchWithPeptide(input, mapping, showTopLevelPathways, fastaFile);
+            case MODIFIEDPEPTIDE:
+            case MODIFIEDPEPTIDES:
+                return Search.searchWithModifiedPeptide(input, mapping, showTopLevelPathways, matchType, margin, fastaFile);
+            default:
+                System.out.println("Input inputType not supported.");
+                System.exit(1);
+                break;
+        }
+        return new SearchResult(InputType.UNKNOWN, false);
+    }
+
     // Fills the hitProteins set to call the next method
-    public static Pair<List<String[]>, MessageStatus> searchWithUniProt(
-            Collection<String> input,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, String> imapProteinsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            Set<String> inputProteins,
-            TreeSet<String> hitProteins,
-            HashSet<String> hitPathways) {
+    public static SearchResult searchWithUniProt(List<String> input, Mapping mapping, Boolean topLevelPathways) {
 
-        // Make sure the structures are empty
-        if (inputProteins == null) {
-            inputProteins = new TreeSet<>();
-        } else {
-            inputProteins.clear();
-        }
+        SearchResult result = new SearchResult(InputType.UNIPROT, topLevelPathways);
 
-        if (hitProteins == null) {
-            hitProteins = new TreeSet<>();
-        } else {
-            hitProteins.clear();
-        }
-
-        if (hitPathways == null) {
-            hitPathways = new HashSet<>();
-        } else {
-            hitPathways.clear();
-        }
-
-        List<String[]> result = new ArrayList<String[]>();
-
+        int row = 0;
         for (String protein : input) {
-            protein = protein.trim();
-
+            row++;
             if (protein.contains("-")) {
                 protein = protein.substring(0, protein.indexOf("-"));
             }
 
-            if (matches_Protein_Uniprot(protein)) {
-                inputProteins.add(protein);
-            } else {
+            if (!matches_Protein_Uniprot(protein)) {
+                sendWarning(INVALID_ROW, row);
                 continue;
             }
+            result.getInputProteins().add(protein);
 
-            for (String reaction : imapProteinsToReactions.get(protein)) {
-                hitProteins.add(protein);
+            for (String reaction : mapping.getProteinsToReactions().get(protein)) {
+                result.getHitProteins().add(protein);
 
-                for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-                    hitPathways.add(pathwayStId);
-                    Pathway pathway = iPathways.get(pathwayStId);
+                for (String pathwayStId : mapping.getReactionsToPathways().get(reaction)) {
+
+                    Pathway pathway = mapping.getPathways().get(pathwayStId);
+                    result.getHitPathways().add(mapping.getPathways().get(pathwayStId));
                     pathway.getReactionsFound().add(reaction);
-                    try {
-                        pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
-                    } catch (ParseException e) {
-                        return new MutablePair<List<String[]>, MessageStatus>(
-                                result,
-                                new MessageStatus(
-                                        "Failed",
-                                        no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                        no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                        no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
-                                        ""));
-                    }
+                    pathway.getEntitiesFound().add(new Proteoform(protein));
+
+                    String[] values = new String[7];
+                    values[0] = protein;
+                    values[1] = reaction;
+                    values[2] = mapping.getReactions().get(reaction).getDisplayName();
+                    values[3] = pathwayStId;
+                    values[4] = pathway.getDisplayName();
+                    values[5] = pathwayStId;
+                    values[6] = pathway.getDisplayName();
+
                     if (topLevelPathways) {
-                        if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
-                                String[] values = {
-                                        protein,
-                                        reaction,
-                                        iReactions.get(reaction).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
-                                };
-                                result.add(values);
+                        if (mapping.getPathwaysToTopLevelPathways().get(pathwayStId).size() > 0) {
+                            for (String topLevelPathway : mapping.getPathwaysToTopLevelPathways().get(pathwayStId)) {
+                                values[5] = topLevelPathway;
+                                values[6] = mapping.getPathways().get(topLevelPathway).getDisplayName();
+                                result.addRecord(values);
                             }
                         } else {
-                            String[] values = {
-                                    protein,
-                                    reaction,
-                                    iReactions.get(reaction).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName()
-                            };
-                            result.add(values);
+                            result.addRecord(values);
                         }
                     } else {
-                        String[] values = {
-                                protein,
-                                reaction,
-                                iReactions.get(reaction).getDisplayName(),
-                                pathwayStId,
-                                iPathways.get(pathwayStId).getDisplayName()
-                        };
-                        result.add(values);
+                        result.addRecord(Arrays.copyOfRange(values, 0, 5));
                     }
                 }
             }
         }
 
-        MessageStatus status = null;
-        status = new MessageStatus("Success", 0, 0, "", "");
-        return new MutablePair<>(result, status);
+        System.out.println("\nInput: " + result.getInputProteins().size() + " proteins");
+        Double percentageProteins = (double) result.getHitProteins().size() * 100.0 / (double) result.getInputProteins().size();
+        System.out.println("Matched: " + result.getHitProteins().size() + " proteins (" + new DecimalFormat("#0.00").format(percentageProteins) + "%)");
+
+        result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
+
+        return result;
     }
 
+    /**
+     * Expects one gene per line. Already trimmed.
+     *
+     * @param input            List of gene names as strings
+     * @param mapping          Static map reference data
+     * @param topLevelPathways Boolean to show top level pathways
+     * @return
+     */
+    public static SearchResult searchWithGene(List<String> input, Mapping mapping, Boolean topLevelPathways) {
 
-    public static Pair<List<String[]>, MessageStatus> searchWithGene(
-            List<String> input,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, String> imapGenesToProteins,
-            ImmutableSetMultimap<String, String> imapProteinsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            TreeSet<String> hitProteins,
-            HashSet<String> hitPathways,
-            TreeSet<String> hitGenes) {
-
-        if (hitGenes == null) {
-            hitGenes = new TreeSet<>();
-        } else {
-            hitGenes.clear();
-        }
-
-        if (hitProteins == null) {
-            hitProteins = new TreeSet<>();
-        } else {
-            hitProteins.clear();
-        }
-
-        if (hitPathways == null) {
-            hitPathways = new HashSet<>();
-        } else {
-            hitPathways.clear();
-        }
-
-        List<String[]> result = new ArrayList<String[]>();
+        SearchResult result = new SearchResult(InputType.GENE, topLevelPathways);
 
         for (String gene : input) {
-            for (String protein : imapGenesToProteins.get(gene.trim())) {
-                hitGenes.add(gene);
-                hitProteins.add(protein);
-                for (String reaction : imapProteinsToReactions.get(protein)) {
-                    for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-                        hitPathways.add(pathwayStId);
-                        Pathway pathway = iPathways.get(pathwayStId);
+            result.getInputGenes().add(gene);
+
+            for (String protein : mapping.getGenesToProteins().get(gene)) {
+                result.getMatchedProteins().add(protein);
+                result.getMatchedGenes().add(gene);
+                result.getInputProteins().add(protein);
+
+                for (String reaction : mapping.getProteinsToReactions().get(protein)) {
+                    result.getHitGenes().add(gene); // The genes that actually matched to some protein
+                    result.getHitProteins().add(protein);
+
+                    for (String pathwayStId : mapping.getReactionsToPathways().get(reaction)) {
+
+                        Pathway pathway = mapping.getPathways().get(pathwayStId);
+                        result.getHitPathways().add(mapping.getPathways().get(pathwayStId));
                         pathway.getReactionsFound().add(reaction);
-                        try {
-                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
-                        } catch (ParseException e) {
-                            return new MutablePair<List<String[]>, MessageStatus>(
-                                    result,
-                                    new MessageStatus(
-                                            "Failed",
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
-                                            ""));
-                        }
+                        pathway.getEntitiesFound().add(new Proteoform(protein));
+
+                        String[] values = new String[8];
+                        values[0] = gene;
+                        values[1] = protein;
+                        values[2] = reaction;
+                        values[3] = mapping.getReactions().get(reaction).getDisplayName();
+                        values[4] = pathwayStId;
+                        values[5] = pathway.getDisplayName();
+                        values[6] = pathwayStId;
+                        values[7] = pathway.getDisplayName();
+
                         if (topLevelPathways) {
-                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
-                                    String[] values = {
-                                            gene,
-                                            protein,
-                                            reaction,
-                                            iReactions.get(reaction).getDisplayName(),
-                                            pathwayStId,
-                                            iPathways.get(pathwayStId).getDisplayName(),
-                                            topLevelPathway,
-                                            iPathways.get(topLevelPathway).getDisplayName()
-                                    };
-                                    result.add(values);
+                            if (mapping.getPathwaysToTopLevelPathways().get(pathwayStId).size() > 0) {
+                                for (String topLevelPathway : mapping.getPathwaysToTopLevelPathways().get(pathwayStId)) {
+                                    values[6] = topLevelPathway;
+                                    values[7] = mapping.getPathways().get(topLevelPathway).getDisplayName();
+                                    result.addRecord(values);
                                 }
                             } else {
-                                String[] values = {
-                                        gene,
-                                        protein,
-                                        reaction,
-                                        iReactions.get(reaction).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName()
-                                };
-                                result.add(values);
+                                result.addRecord(values);
                             }
                         } else {
-                            String[] values = {
-                                    gene,
-                                    protein,
-                                    reaction,
-                                    iReactions.get(reaction).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName()
-                            };
-                            result.add(values);
+                            result.addRecord(Arrays.copyOfRange(values, 0, 6));
                         }
                     }
                 }
             }
         }
 
-        MessageStatus status = null;
-        status = new MessageStatus("Success", 0, 0, "", "");
-        return new MutablePair<>(result, status);
+        System.out.println("\nInput: " + result.getInputGenes().size() + " genes");
+        Double percentageGenes = (double) result.getHitGenes().size() * 100.0 / (double) input.size();
+        System.out.println("Matched: " + result.getHitGenes().size() + " genes (" + new DecimalFormat("#0.00").format(percentageGenes) + "%), " + result.getHitProteins().size() + " proteins");
+
+        result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
+
+        return result;
     }
 
-    public static Pair<List<String[]>, MessageStatus> searchWithEnsembl(
-            List<String> input,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, String> imapEnsemblToProteins,
-            ImmutableSetMultimap<String, String> imapProteinsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            Set<String> inputProteins,
-            TreeSet<String> hitProteins,
-            HashSet<String> hitPathways) {
+    /**
+     * Expects one ensembl identifier per line, already trimmed.
+     *
+     * @param input            List of ensemble ids
+     * @param mapping          Data structures with the static mapping to reactions and pathways
+     * @param topLevelPathways
+     * @return
+     */
+    public static SearchResult searchWithEnsembl(List<String> input, Mapping mapping, Boolean topLevelPathways) {
 
-        if (inputProteins == null) {
-            inputProteins = new TreeSet<>();
-        } else {
-            inputProteins.clear();
-        }
+        SearchResult result = new SearchResult(InputType.ENSEMBL, topLevelPathways);
+        int contHitEnsemble = 0;
 
-        if (hitProteins == null) {
-            hitProteins = new TreeSet<>();
-        } else {
-            hitProteins.clear();
-        }
-
-        if (hitPathways == null) {
-            hitPathways = new HashSet<>();
-        } else {
-            hitPathways.clear();
-        }
-
-        List<String[]> result = new ArrayList<String[]>();
-
+        int row = 0;
         for (String ensembl : input) {
-            ensembl = ensembl.trim();
-            if (matches_Protein_Ensembl(ensembl)) {
-                inputProteins.add(ensembl);
-            } else {
+            row++;
+            if (!matches_Protein_Ensembl(ensembl)) {
+                sendWarning(INVALID_ROW, row);
                 continue;
             }
+            result.getInputEnsembl().add(ensembl);
 
-            for (String protein : imapEnsemblToProteins.get(ensembl)) {
-                hitProteins.add(protein);
-                for (String reaction : imapProteinsToReactions.get(protein)) {
-                    for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-                        hitPathways.add(pathwayStId);
-                        Pathway pathway = iPathways.get(pathwayStId);
+            if (mapping.getEnsemblToUniprot().get(ensembl).size() > 0) {
+                contHitEnsemble++;
+            }
+
+            for (String protein : mapping.getEnsemblToUniprot().get(ensembl)) {
+                result.getInputProteins().add(protein);
+                result.getMatchedEnsembl().add(ensembl);
+                result.getMatchedProteins().add(protein);
+
+                for (String reaction : mapping.getProteinsToReactions().get(protein)) {
+                    result.getHitProteins().add(protein);
+                    result.getHitEnsembl().add(ensembl);
+                    for (String pathwayStId : mapping.getReactionsToPathways().get(reaction)) {
+
+                        Pathway pathway = mapping.getPathways().get(pathwayStId);
+                        result.getHitPathways().add(pathway);
                         pathway.getReactionsFound().add(reaction);
-                        try {
-                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
-                        } catch (ParseException e) {
-                            return new MutablePair<List<String[]>, MessageStatus>(
-                                    result,
-                                    new MessageStatus(
-                                            "Failed",
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
-                                            ""));
-                        }
+                        pathway.getEntitiesFound().add(new Proteoform(protein));
+
+                        String[] values = new String[8];
+                        values[0] = ensembl;
+                        values[1] = protein;
+                        values[2] = reaction;
+                        values[3] = mapping.getReactions().get(reaction).getDisplayName();
+                        values[4] = pathwayStId;
+                        values[5] = pathway.getDisplayName();
+                        values[6] = pathwayStId;
+                        values[7] = pathway.getDisplayName();
+
                         if (topLevelPathways) {
-                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
-                                    String[] values = {
-                                            ensembl,
-                                            protein,
-                                            reaction,
-                                            iReactions.get(reaction).getDisplayName(),
-                                            pathwayStId,
-                                            iPathways.get(pathwayStId).getDisplayName(),
-                                            topLevelPathway,
-                                            iPathways.get(topLevelPathway).getDisplayName()
-                                    };
-                                    result.add(values);
+                            if (mapping.getPathwaysToTopLevelPathways().get(pathwayStId).size() > 0) {
+                                for (String topLevelPathway : mapping.getPathwaysToTopLevelPathways().get(pathwayStId)) {
+                                    values[6] = topLevelPathway;
+                                    values[7] = mapping.getPathways().get(topLevelPathway).getDisplayName();
+                                    result.addRecord(values);
                                 }
                             } else {
-                                String[] values = {
-                                        ensembl,
-                                        protein,
-                                        reaction,
-                                        iReactions.get(reaction).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                };
-                                result.add(values);
+                                result.addRecord(values);
                             }
                         } else {
-                            String[] values = {
-                                    ensembl,
-                                    protein,
-                                    reaction,
-                                    iReactions.get(reaction).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName()
-                            };
-                            result.add(values);
+                            result.addRecord(Arrays.copyOfRange(values, 0, 6));
                         }
                     }
                 }
             }
         }
 
-        MessageStatus status = null;
-        status = new MessageStatus("Success", 0, 0, "", "");
-        return new MutablePair<>(result, status);
+        System.out.println("\nInput: " + result.getInputProteins().size() + " proteins");
+        Double percentageProteins = (double) contHitEnsemble * 100.0 / (double) result.getInputProteins().size();
+        System.out.println("Matched: " + contHitEnsemble + " proteins (" + new DecimalFormat("#0.00").format(percentageProteins) + "%)");
+
+        result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
+
+        return result;
     }
 
 
@@ -353,123 +276,84 @@ public class Search {
      * Usually only for rsids in a specific chromosome, but uses all the mapping contained at the imapRsIdsToProteins parameter.
      * Fills the hitPathways and the hitProteins from the parameter structures.
      *
-     * @param input                          Set of unique identifiers
-     * @param iReactions                     Structure to read reactions stId and displayName
-     * @param iPathways                      Here add the reactions and entities found
-     * @param imapRsIdsToProteins            The mapping for one chromosome
-     * @param imapProteinsToReactions        Generic mapping all proteins to all reactions
-     * @param imapReactionsToPathways        Generic mapping all reactions to all pathways
-     * @param imapPathwaysToTopLevelPathways Generic mapping all pathways to top level pathways
-     * @param topLevelPathways               Flag if top level pathways should be used
-     * @param hitProteins                    Structure to keep which proteins were hit by the search
-     * @param hitPathways                    Structure to keep which pathways were hit by the search
+     * @param input            Set of unique identifiers
+     * @param mapping          Static structures for the pathway matching
+     * @param topLevelPathways Flag if top level pathways should be used
      * @return Mapping from rsids to pathways, message errors
      */
-    public static Pair<List<String[]>, MessageStatus> searchWithRsId(
-            HashSet<String> input,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, String> imapRsIdsToProteins,
-            ImmutableSetMultimap<String, String> imapProteinsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            HashSet<String> matchedRsids,
-            TreeSet<String> hitProteins,
-            HashSet<String> hitPathways) {
+    public static SearchResult searchWithRsId(List<String> input, Mapping mapping, Boolean topLevelPathways) {
 
-        if (matchedRsids == null) {
-            matchedRsids = new HashSet<>();
-        }
+        SearchResult result = new SearchResult(InputType.RSID, topLevelPathways);
 
-        if (hitProteins == null) {
-            hitProteins = new TreeSet<>();
-        }
-
-        if (hitPathways == null) {
-            hitPathways = new HashSet<>();
-        }
-
-        List<String[]> result = new ArrayList<String[]>();
-
-        // If a variant is found then discard it from the variant set
+        int row = 0;
         for (String rsid : input) {
-//            if (imapRsIdsToProteins.containsKey(rsid)) {
-//                System.out.println("Analysing: " + rsid);
-//            }
-            for (String protein : imapRsIdsToProteins.get(rsid)) {
-                //System.out.println("Mapped to: " + protein);
-                matchedRsids.add(rsid);
-                hitProteins.add(protein);
-                for (String reaction : imapProteinsToReactions.get(protein)) {
-                    for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+            row++;
+            if (rsid.isEmpty()) {
+                sendWarning(EMPTY_ROW, row);
+                continue;
+            }
+            if (!matches_Rsid(rsid)) {
+                sendWarning(INVALID_ROW, row);
+                continue;
+            }
+            result.getInputRsid().add(rsid);
+        }
 
-                        hitPathways.add(pathwayStId);
-                        Pathway pathway = iPathways.get(pathwayStId);
-                        pathway.getReactionsFound().add(reaction);
-                        try {
-                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
-                        } catch (ParseException e) {
-                            return new MutablePair<List<String[]>, MessageStatus>(
-                                    result,
-                                    new MessageStatus(
-                                            "Failed",
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
-                                            ""));
-                        }
+        for (int chr = 1; chr <= 22; chr++) {
+            for (String rsid : result.getInputRsid()) {
+                for (String protein : mapping.getRsidsToProteins(chr).get(rsid)) {
+                    result.getMatchedRsid().add(rsid);
+                    result.getInputProteins().add(protein);
+                    result.getMatchedProteins().add(protein);
 
-                        if (topLevelPathways) {
-                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
-                                    String[] values = {
-                                            rsid,
-                                            protein,
-                                            reaction,
-                                            iReactions.get(reaction).getDisplayName(),
-                                            pathwayStId,
-                                            iPathways.get(pathwayStId).getDisplayName(),
-                                            topLevelPathway,
-                                            iPathways.get(topLevelPathway).getDisplayName()
-                                    };
-                                    result.add(values);
+                    for (String reaction : mapping.getProteinsToReactions().get(protein)) {
+                        result.getHitProteins().add(protein);
+                        result.getHitRsid().add(rsid);
+
+                        for (String pathwayStId : mapping.getReactionsToPathways().get(reaction)) {
+
+                            Pathway pathway = mapping.getPathways().get(pathwayStId);
+                            result.getHitPathways().add(pathway);
+                            pathway.getReactionsFound().add(reaction);
+                            pathway.getEntitiesFound().add(new Proteoform(protein));
+
+                            String[] values = new String[8];
+                            values[0] = rsid;
+                            values[1] = protein;
+                            values[2] = reaction;
+                            values[3] = mapping.getReactions().get(reaction).getDisplayName();
+                            values[4] = pathwayStId;
+                            values[5] = pathway.getDisplayName();
+                            values[6] = pathwayStId;
+                            values[7] = pathway.getDisplayName();
+
+                            if (topLevelPathways) {
+                                if (mapping.getPathwaysToTopLevelPathways().get(pathwayStId).size() > 0) {
+                                    for (String topLevelPathway : mapping.getPathwaysToTopLevelPathways().get(pathwayStId)) {
+                                        values[6] = topLevelPathway;
+                                        values[7] = mapping.getPathways().get(topLevelPathway).getDisplayName();
+                                        result.addRecord(values);
+                                    }
+                                } else {
+                                    result.addRecord(values);
                                 }
                             } else {
-                                String[] values = {
-                                        rsid,
-                                        protein,
-                                        reaction,
-                                        iReactions.get(reaction).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                };
-                                result.add(values);
+                                result.addRecord(Arrays.copyOfRange(values, 0, 6));
                             }
-                        } else {
-                            String[] values = {
-                                    rsid,
-                                    protein,
-                                    reaction,
-                                    iReactions.get(reaction).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName()
-                            };
-                            result.add(values);
                         }
                     }
                 }
             }
-
         }
 
-        System.out.println("Found " + hitProteins.size() + " proteins.");
+        System.out.println("\nInput: " + result.getInputRsid().size() + " rsids");
+        System.out.println("Found " + result.getHitProteins().size() + " proteins.");
+        Double percentageSnps = (double) result.getMatchedRsid().size() * 100.0 / (double) result.getInputRsid().size();
+        System.out.println("Matched: " + result.getMatchedRsid().size() + " snps (" + new DecimalFormat("#0.00").format(percentageSnps) + "%), " + result.getHitProteins().size() + " proteins");
 
-        MessageStatus status = null;
-        status = new MessageStatus("Success", 0, 0, "", "");
-        return new MutablePair<>(result, status);
+        result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
+
+        return result;
     }
 
     /**
@@ -477,195 +361,125 @@ public class Search {
      * Only maps a specific chromosome at a time, but uses all the mapping contained at the imapRsIdsToProteins parameter.
      * Fills the hitPathways and the hitProteins from the parameter structures.
      *
-     * @param bpSet                          Set of base pairs in the desired chromosome
-     * @param iReactions                     Structure to read reactions stId and displayName
-     * @param iPathways                      Here add the reactions and entities found
-     * @param imapChrBpToProteins            The mapping for one chromosome
-     * @param imapProteinsToReactions        Generic mapping all proteins to all reactions
-     * @param imapReactionsToPathways        Generic mapping all reactions to all pathways
-     * @param imapPathwaysToTopLevelPathways Generic mapping all pathways to top level pathways
-     * @param topLevelPathways               Flag if top level pathways should be used
-     * @param hitProteins                    Structure to keep which proteins were hit by the search
-     * @param hitPathways                    Structure to keep which pathways were hit by the search
+     * @param input            one chr and bp per line
+     * @param mapping
+     * @param topLevelPathways Flag if top level pathways should be used
      * @return Mapping from rsids to pathways, message errors
      */
-    public static Pair<List<String[]>, MessageStatus> searchWithChrBp(
-            int chr,
-            Set<Long> bpSet,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<Long, String> imapChrBpToProteins,
-            ImmutableSetMultimap<String, String> imapProteinsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            TreeMultimap<Integer, Long> matchedSnps,
-            TreeSet<String> hitProteins,
-            HashSet<String> hitPathways) {
+    public static SearchResult searchWithChrBp(List<String> input, Mapping mapping, Boolean topLevelPathways) {
 
-        if(matchedSnps == null){
-            matchedSnps = TreeMultimap.create();
-        }
+        SearchResult result = new SearchResult(InputType.CHRBP, topLevelPathways);
 
-        if (hitProteins == null) {
-            hitProteins = new TreeSet<>();
-        }
-
-        if(hitPathways == null){
-            hitPathways = new HashSet<>();
-        }
-
-        List<String[]> result = new ArrayList<String[]>();
-
+        Snp snp = null;
         int row = 0;
-        for (Long bp : bpSet) {
-            for (String protein : imapChrBpToProteins.get(bp)) {
+        for (String line : input) {
+            row++;
+            if (line.isEmpty()) {
+                sendWarning(EMPTY_ROW, row);
+                continue;
+            }
+            if (line.startsWith("#")) {
+                continue;
+            }
+            if (!matches_ChrBp(line) && !matches_Vcf_Record(line)) {
+                sendWarning(INVALID_ROW, row);
+                continue;
+            }
+            snp = getSnpFromChrBp(line);
+            result.getInputChrBp().put(snp.getChr(), snp.getBp());
+        }
 
-                matchedSnps.put(chr, bp);
-                hitProteins.add(protein);
+        for (int chr : result.getInputChrBp().keySet()) {
+            for (Long bp : result.getInputChrBp().get(chr)) {
+                for (String protein : mapping.getChrBpToProteins(chr).get(bp)) {
+                    result.getMatchedChrBp().put(chr, bp);
+                    result.getInputProteins().add(protein);
+                    result.getMatchedProteins().add(protein);
 
-                for (String reaction : imapProteinsToReactions.get(protein)) {
-                    for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
+                    for (String reaction : mapping.getProteinsToReactions().get(protein)) {
+                        result.getHitProteins().add(protein);
+                        result.getHitChrBp().put(chr, bp);
 
-                        hitPathways.add(pathwayStId);
-                        Pathway pathway = iPathways.get(pathwayStId);
-                        pathway.getReactionsFound().add(reaction);
-                        try {
-                            pathway.getEntitiesFound().add(ProteoformFormat.SIMPLE.getProteoform(protein, 0));
-                        } catch (ParseException e) {
-                            return new MutablePair<List<String[]>, MessageStatus>(
-                                    result,
-                                    new MessageStatus(
-                                            "Failed",
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getCode(),
-                                            no.uib.pap.model.Error.INPUT_PARSING_ERROR.getMessage(),
-                                            ""));
-                        }
+                        for (String pathwayStId : mapping.getReactionsToPathways().get(reaction)) {
 
-                        if (topLevelPathways) {
-                            if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                                for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
-                                    String[] values = {
-                                            String.valueOf(chr),
-                                            String.valueOf(bp),
-                                            protein,
-                                            reaction,
-                                            iReactions.get(reaction).getDisplayName(),
-                                            pathwayStId,
-                                            iPathways.get(pathwayStId).getDisplayName(),
-                                            topLevelPathway,
-                                            iPathways.get(topLevelPathway).getDisplayName()
-                                    };
-                                    result.add(values);
+                            Pathway pathway = mapping.getPathways().get(pathwayStId);
+                            result.getHitPathways().add(pathway);
+                            pathway.getReactionsFound().add(reaction);
+                            pathway.getEntitiesFound().add(new Proteoform(protein));
+
+                            String[] values = new String[9];
+                            values[0] = String.valueOf(chr);
+                            values[1] = String.valueOf(bp);
+                            values[2] = protein;
+                            values[3] = reaction;
+                            values[4] = mapping.getReactions().get(reaction).getDisplayName();
+                            values[5] = pathwayStId;
+                            values[6] = pathway.getDisplayName();
+                            values[7] = pathwayStId;
+                            values[8] = pathway.getDisplayName();
+
+                            if (topLevelPathways) {
+                                if (mapping.getPathwaysToTopLevelPathways().get(pathwayStId).size() > 0) {
+                                    for (String topLevelPathway : mapping.getPathwaysToTopLevelPathways().get(pathwayStId)) {
+                                        values[7] = topLevelPathway;
+                                        values[8] = mapping.getPathways().get(topLevelPathway).getDisplayName();
+                                        result.addRecord(values);
+                                    }
+                                } else {
+                                    result.addRecord(values);
                                 }
                             } else {
-                                String[] values = {
-                                        String.valueOf(chr),
-                                        String.valueOf(bp),
-                                        protein,
-                                        reaction,
-                                        iReactions.get(reaction).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                };
-                                result.add(values);
+                                result.addRecord(Arrays.copyOfRange(values, 0, 7));
                             }
-                        } else {
-                            String[] values = {
-                                    String.valueOf(chr),
-                                    String.valueOf(bp),
-                                    protein,
-                                    reaction,
-                                    iReactions.get(reaction).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName()
-                            };
-                            result.add(values);
                         }
                     }
                 }
             }
         }
 
-        System.out.println("Found " + hitProteins.size() + " proteins.");
+        System.out.println("\nInput: " + result.getInputChrBp().entries().size() + " snps");
+        System.out.println("Found " + result.getHitProteins().size() + " proteins.");
+        Double percentageSnps = (double) result.getMatchedChrBp().entries().size() * 100.0 / (double) result.getInputChrBp().entries().size();
+        System.out.println("Matched: " + result.getMatchedChrBp().entries().size() + " snps ("
+                + new DecimalFormat("#0.00").format(percentageSnps) + "%), "
+                + result.getHitProteins().size() + " proteins");
 
-        MessageStatus status = null;
-        status = new MessageStatus("Success", 0, 0, "", "");
-        return new MutablePair<>(result, status);
+        result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
+
+        return result;
     }
 
     /*
+     * Get the snp instance from a line with chromosome and base pair.
      * This method expects the line to be validated already
      */
     private static Snp getSnpFromChrBp(String line) {
         String[] fields = line.split("\\s");
         Integer chr = Integer.valueOf(fields[0]);
+        if (fields[1].endsWith("L")) {
+            fields[1] = fields[1].substring(0, fields[1].length() - 1);
+        }
         Long bp = Long.valueOf(fields[1]);
         return new Snp(chr, bp);
     }
 
-    public static Pair<List<String[]>, MessageStatus> searchWithProteoform(
-            List<String> input,
-            MatchType matchType,
-            Long margin,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, Proteoform> imapProteinsToProteoforms,
-            ImmutableSetMultimap<Proteoform, String> imapProteoformsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            TreeSet<String> hitProteins,
-            HashSet<Proteoform> inputProteoforms,
-            HashSet<Proteoform> matchedProteoforms,
-            HashSet<Proteoform> hitProteoforms,
-            HashSet<String> hitPathways) {
+    public static SearchResult searchWithProteoform(List<String> input,
+                                                    Mapping mapping,
+                                                    Boolean topLevelPathways,
+                                                    MatchType matchType,
+                                                    Long margin) {
 
-        if (inputProteoforms == null) {
-            inputProteoforms = new HashSet<Proteoform>();
-        } else {
-            inputProteoforms.clear();
-        }
-
-        if (matchedProteoforms == null) {
-            matchedProteoforms = new HashSet<Proteoform>();
-        } else {
-            matchedProteoforms.clear();
-        }
-
-        if (hitProteoforms == null) {
-            hitProteoforms = new HashSet<Proteoform>();
-        } else {
-            hitProteoforms.clear();
-        }
-
-        if (hitProteins == null) {
-            hitProteins = new TreeSet<>();
-        } else {
-            hitProteins.clear();
-        }
-
-        if (hitPathways == null) {
-            hitPathways = new HashSet<>();
-        } else {
-            hitPathways.clear();
-        }
-
-        List<String[]> result = new ArrayList<String[]>();
+        SearchResult result = new SearchResult(InputType.PROTEOFORM, topLevelPathways);
         ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
-
         assert matcher != null;
 
-        int row = 1;
+        int row = 0;
         for (String line : input) {
             row++;
             if (matches_Proteoform_Simple(line)) {
                 try {
                     Proteoform proteoform = ProteoformFormat.SIMPLE.getProteoform(line, row);
-                    inputProteoforms.add(proteoform);
+                    result.getInputProteoforms().add(proteoform);
                 } catch (ParseException e) {
                     sendWarning(INVALID_ROW, row);
                 }
@@ -678,93 +492,77 @@ public class Search {
         }
 
         // For each proteoform in the input we try to find matches in the reference proteoforms
-        for (Proteoform inputProteoform : inputProteoforms) {
-            for (Proteoform refProteoform : imapProteinsToProteoforms.get(inputProteoform.getUniProtAcc())) {
+        for (Proteoform inputProteoform : result.getInputProteoforms()) {
+            result.getInputProteins().add(inputProteoform.getUniProtAcc());
+
+            for (Proteoform refProteoform : mapping.getProteinsToProteoforms().get(inputProteoform.getUniProtAcc())) {
                 if (matcher.matches(inputProteoform, refProteoform, margin)) {
-                    matchedProteoforms.add(inputProteoform);
-                    hitProteoforms.add(refProteoform);
-                }
-            }
-        }
-
-        for (Proteoform proteoform : hitProteoforms) {
-            for (String reaction : imapProteoformsToReactions.get(proteoform)) {
-                hitProteins.add(proteoform.getUniProtAcc());
-                for (String pathwayStId : imapReactionsToPathways.get(reaction)) {
-                    hitPathways.add(pathwayStId);
-                    Pathway pathway = iPathways.get(pathwayStId);
-                    pathway.getReactionsFound().add(reaction);
-                    pathway.getEntitiesFound().add(proteoform);
-
-                    if (topLevelPathways) {
-                        if (imapPathwaysToTopLevelPathways.get(pathwayStId).size() > 0) {
-                            for (String topLevelPathway : imapPathwaysToTopLevelPathways.get(pathwayStId)) {
-                                String[] values = {
-                                        proteoform.getUniProtAcc(),
-                                        proteoform.toString(ProteoformFormat.SIMPLE),
-                                        reaction,
-                                        iReactions.get(reaction).getDisplayName(),
-                                        pathwayStId,
-                                        iPathways.get(pathwayStId).getDisplayName(),
-                                        topLevelPathway,
-                                        iPathways.get(topLevelPathway).getDisplayName()
-                                };
-                                result.add(values);
-                            }
-                        } else {
-                            String[] values = {
-                                    proteoform.getUniProtAcc(),
-                                    proteoform.toString(ProteoformFormat.SIMPLE),
-                                    reaction,
-                                    iReactions.get(reaction).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName(),
-                                    pathwayStId,
-                                    iPathways.get(pathwayStId).getDisplayName(),
-                            };
-                            result.add(values);
-                        }
-                    } else {
-                        String[] values = {
-                                proteoform.getUniProtAcc(),
-                                proteoform.toString(ProteoformFormat.SIMPLE),
-                                reaction,
-                                iReactions.get(reaction).getDisplayName(),
-                                pathwayStId,
-                                iPathways.get(pathwayStId).getDisplayName()
-                        };
-                        result.add(values);
+                    result.getMatchedProteoforms().add(inputProteoform);
+                    result.getMatchedProteins().add(inputProteoform.getUniProtAcc());
+                    if (mapping.getProteoformsToReactions().get(refProteoform).size() > 0) {
+                        result.getHitProteoforms().add(refProteoform);
+                        result.getHitProteins().add(refProteoform.getUniProtAcc());
                     }
                 }
             }
         }
 
-        MessageStatus status = null;
-        status = new MessageStatus("Success", 0, 0, "", "");
-        return new MutablePair<>(result, status);
-    }
+        for (Proteoform hitProteoform : result.getHitProteoforms()) {
+            for (String reaction : mapping.getProteoformsToReactions().get(hitProteoform)) {
+                result.getHitProteoforms().add(hitProteoform);
+                result.getHitProteins().add(hitProteoform.getUniProtAcc());
 
-    public static Pair<List<String[]>, MessageStatus> searchWithPeptide(
-            Collection<String> input,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, String> imapProteinsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            Set<String> inputProteins,
-            TreeSet<String> hitProteins,
-            HashSet<String> hitPathways,
-            String fastaFile) {
+                for (String pathwayStId : mapping.getReactionsToPathways().get(reaction)) {
 
-        if (inputProteins == null) {
-            inputProteins = new HashSet<>();
-        } else{
-            inputProteins.clear();
+                    Pathway pathway = mapping.getPathways().get(pathwayStId);
+                    result.getHitPathways().add(pathway);
+                    pathway.getReactionsFound().add(reaction);
+                    pathway.getEntitiesFound().add(hitProteoform);
+
+                    String[] values = new String[8];
+                    values[0] = hitProteoform.toString(ProteoformFormat.SIMPLE);
+                    values[1] = hitProteoform.getUniProtAcc();
+                    values[2] = reaction;
+                    values[3] = mapping.getReactions().get(reaction).getDisplayName();
+                    values[4] = pathwayStId;
+                    values[5] = pathway.getDisplayName();
+                    values[6] = pathwayStId;
+                    values[7] = pathway.getDisplayName();
+
+                    if (topLevelPathways) {
+                        if (mapping.getPathwaysToTopLevelPathways().get(pathwayStId).size() > 0) {
+                            for (String topLevelPathway : mapping.getPathwaysToTopLevelPathways().get(pathwayStId)) {
+                                values[6] = topLevelPathway;
+                                values[7] = mapping.getPathways().get(topLevelPathway).getDisplayName();
+                                result.addRecord(values);
+                            }
+                        } else {
+                            result.addRecord(values);
+                        }
+                    } else {
+                        result.addRecord(Arrays.copyOfRange(values, 0, 6));
+                    }
+                }
+            }
         }
 
-        List<String[]> result = new ArrayList<String[]>();
-        List<String> mappedProteins = new ArrayList<>();
+        System.out.println("\nInput: " + result.getInputProteoforms().size() + " proteoforms, " + result.getInputProteins().size() + " proteins");
+        Double percentageProteoforms = (double) result.getMatchedProteoforms().size() * 100.0 / (double) result.getInputProteoforms().size();
+        Double percentageProteins = (double) result.getMatchedProteins().size() * 100.0 / (double) result.getInputProteins().size();
+        System.out.println("Matched: " + result.getMatchedProteoforms().size() + " proteoforms(" + new DecimalFormat("#0.00").format(percentageProteoforms) + "%), "
+                + result.getMatchedProteins().size() + " proteins (" + new DecimalFormat("#0.00").format(percentageProteins) + "%)");
+
+        result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
+
+        return result;
+    }
+
+    public static SearchResult searchWithPeptide(List<String> input,
+                                                 Mapping mapping,
+                                                 Boolean topLevelPathways,
+                                                 String fastaFile) {
+
+        SearchResult result = new SearchResult(InputType.PEPTIDE, topLevelPathways);
 
         // Note: In this function the duplicate protein identifiers are removed by
         // adding the whole input list to a set.
@@ -773,18 +571,12 @@ public class Search {
             System.exit(ERROR_INITIALIZING_PEPTIDE_MAPPER.getCode());
         }
 
-        int row = 1;
+        int row = 0;
         for (String line : input) {
-            line = line.trim();
             row++;
-            if (matches_Peptite(line)) {
-                // Process line
+            if (matches_Peptide(line)) {
                 for (String protein : getPeptideMapping(line)) {
-                    if (protein.contains("-")) {
-                        mappedProteins.add(protein.substring(0, protein.indexOf("-")));
-                    } else {
-                        mappedProteins.add(protein);
-                    }
+                    result.getMatchedProteins().add(protein.contains("-") ? protein.substring(0, protein.indexOf("-")) : protein);
                 }
             } else {
                 if (line.isEmpty())
@@ -794,61 +586,16 @@ public class Search {
             }
         }
 
-        return searchWithUniProt(mappedProteins, iReactions, iPathways, imapProteinsToReactions,
-                imapReactionsToPathways, imapPathwaysToTopLevelPathways, topLevelPathways,
-                inputProteins, hitProteins, hitPathways);
+        return searchWithUniProt(new ArrayList<>(result.getMatchedProteins()), mapping, topLevelPathways);
     }
 
-    public static Pair<List<String[]>, MessageStatus> searchWithModifiedPeptide(
-            List<String> input,
-            MatchType matchType,
-            Long margin,
-            ImmutableMap<String, Reaction> iReactions,
-            ImmutableMap<String, Pathway> iPathways,
-            ImmutableSetMultimap<String, Proteoform> imapProteinsToProteoforms,
-            ImmutableSetMultimap<Proteoform, String> imapProteoformsToReactions,
-            ImmutableSetMultimap<String, String> imapReactionsToPathways,
-            ImmutableSetMultimap<String, String> imapPathwaysToTopLevelPathways,
-            Boolean topLevelPathways,
-            TreeSet<String> hitProteins,
-            HashSet<Proteoform> inputProteoforms,
-            HashSet<Proteoform> matchedProteoforms,
-            HashSet<Proteoform> hitProteoforms,
-            HashSet<String> hitPathways,
-            String fastaFile) {
+    public static SearchResult searchWithModifiedPeptide(List<String> input,
+                                                         Mapping mapping,
+                                                         Boolean topLevelPathways,
+                                                         MatchType matchType,
+                                                         Long margin,
+                                                         String fastaFile) {
 
-        if (inputProteoforms == null) {
-            inputProteoforms = new HashSet<Proteoform>();
-        } else {
-            inputProteoforms.clear();
-        }
-
-        if (matchedProteoforms == null) {
-            matchedProteoforms = new HashSet<Proteoform>();
-        } else {
-            matchedProteoforms.clear();
-        }
-
-        if (hitProteoforms == null) {
-            hitProteoforms = new HashSet<Proteoform>();
-        } else {
-            hitProteoforms.clear();
-        }
-
-        if (hitProteins == null) {
-            hitProteins = new TreeSet<>();
-        } else {
-            hitProteins.clear();
-        }
-
-        if (hitPathways == null) {
-            hitPathways = new HashSet<>();
-        } else {
-            hitPathways.clear();
-        }
-
-        List<String[]> result = new ArrayList<String[]>();
-        ProteoformMatching matcher = ProteoformMatching.getInstance(matchType);
         List<String> correctedInput = new ArrayList<>();
 
         // Note: In this function the duplicate protein identifiers are removed by
@@ -858,7 +605,7 @@ public class Search {
             System.exit(ERROR_INITIALIZING_PEPTIDE_MAPPER.getCode());
         }
 
-        int row = 1;
+        int row = 0;
         for (String line : input) {
             row++;
             if (matches_Peptite_And_Mod_Sites(line)) {
@@ -874,11 +621,10 @@ public class Search {
                         for (Pair<String, Long> ptm : tempProteoform.getPtms()) {
                             correctProteoform.addPtm(ptm.getLeft(), ptm.getValue() + index);
                         }
-
                         correctedInput.add(correctProteoform.toString(ProteoformFormat.SIMPLE));
                     }
                 } catch (ParseException e) {
-                    e.printStackTrace();
+                    sendWarning(INVALID_ROW, row);
                 }
             } else {
                 if (line.isEmpty())
@@ -888,22 +634,6 @@ public class Search {
             }
         }
 
-        return searchWithProteoform(
-                correctedInput,
-                matchType,
-                margin,
-                iReactions,
-                iPathways,
-                imapProteinsToProteoforms,
-                imapProteoformsToReactions,
-                imapReactionsToPathways,
-                imapPathwaysToTopLevelPathways,
-                topLevelPathways,
-                hitProteins,
-                inputProteoforms,
-                matchedProteoforms,
-                hitProteoforms,
-                hitPathways
-        );
+        return searchWithProteoform(correctedInput, mapping, topLevelPathways, matchType, margin);
     }
 }
