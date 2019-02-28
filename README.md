@@ -17,7 +17,7 @@ PathwayMatcher allows the user to select multiple modes depending on the needs:
 * [one_no_types](https://github.com/PathwayAnalysisPlatform/PathwayMatcher/wiki/Proteoform-matching#one): similar to _one_ ignoring the modification types
 * [strict](https://github.com/PathwayAnalysisPlatform/PathwayMatcher/wiki/Proteoform-matching#strict): the input and reference proteoforms must match exactly in all the attributes.
 
-The [classes](https://github.com/PathwayAnalysisPlatform/Methods/tree/master/src/main/java/no/uib/pap/methods/search) implementing that functionality are located [here](https://github.com/PathwayAnalysisPlatform/Methods/tree/master/src/main/java/no/uib/pap/methods/search). For mode details on each of this modes please consult this [wiki](https://github.com/PathwayAnalysisPlatform/PathwayMatcher/wiki/Proteoform-matching) page.
+The [classes](https://github.com/PathwayAnalysisPlatform/Methods/tree/master/src/main/java/no/uib/pap/methods/matching) implementing that functionality are located [here](https://github.com/PathwayAnalysisPlatform/Methods/tree/master/src/main/java/no/uib/pap/methods/matching). For mode details on each of this modes please consult this [wiki](https://github.com/PathwayAnalysisPlatform/PathwayMatcher/wiki/Proteoform-matching) page.
 
 ## Pathway search
 
