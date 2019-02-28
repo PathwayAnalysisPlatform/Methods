@@ -1,5 +1,7 @@
 package no.uib.pap.methods.search;
 
+import no.uib.pap.methods.matching.ProteoformMatching;
+import no.uib.pap.methods.matching.ProteoformMatchingSubset;
 import no.uib.pap.model.Proteoform;
 import no.uib.pap.model.ProteoformFormat;
 import org.junit.jupiter.api.BeforeAll;

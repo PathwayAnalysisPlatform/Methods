@@ -1,5 +1,7 @@
 package no.uib.pap.methods.search;
 
+import com.google.common.collect.Lists;
+import no.uib.pap.methods.matching.ProteoformMatching;
 import no.uib.pap.model.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -24,9 +26,18 @@ public class Search {
         return Search.search(input, inputType, showTopLevelPathways, mapping, MatchType.SUPERSET, 0L, "");
     }
 
+    private static String removeUTF8BOM(String line) {
+        if (line.startsWith("\uFEFF")) {
+            line = line.substring(1);
+        } else if(line.startsWith("ï»¿")) {
+            line = line.substring(3);
+        }
+        return line;
+    }
 
     public static SearchResult search(List<String> input, InputType inputType, boolean showTopLevelPathways, Mapping mapping, MatchType matchType, Long margin, String fastaFile) {
         input.replaceAll(String::trim);
+        input = Lists.transform(input, Search::removeUTF8BOM);
         switch (inputType) {
             case GENE:
             case GENES:
@@ -78,6 +89,7 @@ public class Search {
                 continue;
             }
             result.getInputProteins().add(protein);
+            result.getMatchedProteins().add(protein);
 
             for (String reaction : mapping.getProteinsToReactions().get(protein)) {
                 result.getHitProteins().add(protein);
@@ -116,8 +128,10 @@ public class Search {
         }
 
         System.out.println("\nInput: " + result.getInputProteins().size() + " proteins");
-        Double percentageProteins = (double) result.getHitProteins().size() * 100.0 / (double) result.getInputProteins().size();
-        System.out.println("Matched: " + result.getHitProteins().size() + " proteins (" + new DecimalFormat("#0.00").format(percentageProteins) + "%)");
+        Double percentageProteins = (double) result.getMatchedProteins().size() * 100.0 / (double) result.getInputProteins().size();
+        System.out.println("Matched: " + result.getMatchedProteins().size() + " proteins (" + new DecimalFormat("#0.00").format(percentageProteins) + "%)");
+        percentageProteins = (double) result.getHitProteins().size() * 100.0 / (double) result.getInputProteins().size();
+        System.out.println("Proteins mapping to reactions: " + result.getHitProteins().size() + " proteins (" + new DecimalFormat("#0.00").format(percentageProteins) + "%)");
 
         result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
 
@@ -184,8 +198,10 @@ public class Search {
         }
 
         System.out.println("\nInput: " + result.getInputGenes().size() + " genes");
-        Double percentageGenes = (double) result.getHitGenes().size() * 100.0 / (double) input.size();
-        System.out.println("Matched: " + result.getHitGenes().size() + " genes (" + new DecimalFormat("#0.00").format(percentageGenes) + "%), " + result.getHitProteins().size() + " proteins");
+        Double percentageGenes = (double) result.getMatchedGenes().size() * 100.0 / (double) input.size();
+        System.out.println("Matched: " + result.getMatchedGenes().size() + " genes (" + new DecimalFormat("#0.00").format(percentageGenes) + "%), " + result.getHitProteins().size() + " proteins");
+        percentageGenes = (double) result.getHitGenes().size() * 100.0 / (double) result.getInputGenes().size();
+        System.out.println("Genes mapping to reactions: " + result.getHitGenes().size() + " genes (" + new DecimalFormat("#0.00").format(percentageGenes) + "%)");
 
         result.setStatus(new MessageStatus("Success", 0, 0, "", ""));
 

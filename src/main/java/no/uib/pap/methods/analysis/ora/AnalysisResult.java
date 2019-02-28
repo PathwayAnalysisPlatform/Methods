@@ -67,6 +67,8 @@ public class AnalysisResult {
 
             outputAnalysis.close();
 
+            System.out.println("Finished writing Analysis results.");
+
         } catch (IOException ex) {
             sendError(ERROR_WITH_OUTPUT_FILE);
         }

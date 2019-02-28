@@ -1,26 +1,30 @@
-package no.uib.pap.methods.search;
+package no.uib.pap.methods.matching;
 
 import no.uib.pap.model.Proteoform;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * Matching type where the input proteoforms are matched with proteoforms, when the input contains all or more of the post translational modification of the reference proteoforms.
+ * Matching type where the input proteoforms are matched with proteoforms, when all the ptms of the input proteoform are in the reference proteoforms.
  */
-public class ProteoformMatchingSuperset extends ProteoformMatching {
+public class ProteoformMatchingSubset extends ProteoformMatching {
 
     private static Boolean useTypes;
 
-    public ProteoformMatchingSuperset(Boolean useTypes) {
+    public ProteoformMatchingSubset(Boolean useTypes) {
         this.useTypes = useTypes;
     }
 
-    public boolean matches(Long iC, Long rC, Long margin){
-        if(iC != null){ if(iC == -1L) iC = null; }
-        if(rC != null){ if(rC == -1L) rC = null; }
-        if(iC != null && rC != null){
-            if(iC != rC){
-                if(Math.abs(iC-rC) > margin){
+    public boolean matches(Long iC, Long rC, Long margin) {
+        if (iC != null) {
+            if (iC == -1L) iC = null;
+        }
+        if (rC != null) {
+            if (rC == -1L) rC = null;
+        }
+        if (iC != null && rC != null) {
+            if (iC != rC) {
+                if (Math.abs(iC - rC) > margin) {
                     return false;
                 }
             }
@@ -52,17 +56,17 @@ public class ProteoformMatchingSuperset extends ProteoformMatching {
             return false;
         }
 
-        // All the reference PTMs should be in the inputs
-        for (Pair<String, Long> rPtm : rP.getPtms()) {
-            // If the rPtm is exatly in the input then it is ok
-            // If the rPtm is not present then we check in a flexible way with the coordinate margin or type
-            if (!iP.getPtms().contains(new MutablePair<>(rPtm.getKey(), rPtm.getValue()))) {
+        // All the input PTMs should be in the reference
+        for (Pair<String, Long> iPtm : iP.getPtms()) {
+            // If the ptm is exactly then everything keeps ok
+            // If the ptm is not contained then we check in a flexible way with the coordinate margin and type
+            if (!rP.getPtms().contains(new MutablePair<>(iPtm.getKey(), iPtm.getValue()))) {
                 boolean anyMatches = false;
-                // Try to find the current reference ptm in the available input ptms
-                for (Pair<String, Long> iPtm : iP.getPtms()) {
-                    // Check type is equal if needed
-                    if (!useTypes || rPtm.getLeft().equals(iPtm.getLeft())) {
-                        // Check the coordinates are within the margin
+                // Try to find the current input ptm in all the available reference ptms
+                for (Pair<String, Long> rPtm : rP.getPtms()) {
+                    // If type is required then it must be equal
+                    if (!useTypes || iPtm.getLeft().equals(rPtm.getLeft())) {
+                        // Check the coordinate within the margin
                         if (matches(rPtm.getRight(), iPtm.getRight(), margin)) {
                             anyMatches = true;
                             break;

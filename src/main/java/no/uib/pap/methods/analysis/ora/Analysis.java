@@ -24,6 +24,8 @@ public class Analysis {
      */
     public static AnalysisResult analysis(SearchResult searchResult, int populationSize) {
 
+        System.out.println("Starting ORA analysis...");
+
         // Traverse all the pathways
         int percentage = 0;
         int processed = 0;
@@ -54,32 +56,6 @@ public class Analysis {
         adjustPValues(searchResult.getHitPathways());
 
         return new AnalysisResult(searchResult.getHitPathways(), new MessageStatus("Sucess", 0, 0, "", ""));
-    }
-
-    public static int getPopulationSize(InputType inputType, int totalProteins, int totalProteoforms) {
-        switch (inputType) {
-            case GENE:
-            case GENES:
-            case ENSEMBL:
-            case ENSEMBLS:
-            case UNIPROT:
-            case UNIPROTS:
-            case RSID:
-            case RSIDS:
-            case CHRBP:
-            case CHRBPS:
-            case VCF:
-            case PEPTIDE:
-            case PEPTIDES:
-                return totalProteins;
-            case PROTEOFORM:
-            case PROTEOFORMS:
-            case MODIFIEDPEPTIDE:
-            case MODIFIEDPEPTIDES:
-                return totalProteoforms;
-            default:
-                return 0;
-        }
     }
 
     /**

@@ -6,14 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.ParseException;
-import java.util.HashSet;
-import java.util.Set;
 
+import no.uib.pap.methods.matching.ProteoformMatching;
+import no.uib.pap.methods.matching.ProteoformMatchingStrict;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.SetMultimap;
 
 import no.uib.pap.model.Proteoform;
 import no.uib.pap.model.ProteoformFormat;

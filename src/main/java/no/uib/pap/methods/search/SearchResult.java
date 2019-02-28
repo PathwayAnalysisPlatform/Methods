@@ -69,7 +69,7 @@ public class SearchResult {
         return inputProteins;
     }
 
-    Set<Proteoform> getInputProteoforms() {
+    public Set<Proteoform> getInputProteoforms() {
         return inputProteoforms;
     }
 
@@ -81,7 +81,7 @@ public class SearchResult {
         this.records.add(record);
     }
 
-    Set<String> getInputGenes() {
+    public Set<String> getInputGenes() {
         return inputGenes;
     }
 
@@ -190,6 +190,7 @@ public class SearchResult {
         } catch (IOException ex) {
             sendError(ERROR_WITH_OUTPUT_FILE);
         }
+        System.out.println("Finished writing Matching results.");
     }
 
     public void calculateHitGenes(Mapping mapping) {

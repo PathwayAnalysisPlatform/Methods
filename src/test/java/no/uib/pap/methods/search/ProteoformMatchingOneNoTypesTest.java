@@ -1,15 +1,13 @@
 package no.uib.pap.methods.search;
 
-import com.google.common.collect.SetMultimap;
+import no.uib.pap.methods.matching.ProteoformMatching;
+import no.uib.pap.methods.matching.ProteoformMatchingOne;
 import no.uib.pap.model.Proteoform;
 import no.uib.pap.model.ProteoformFormat;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 

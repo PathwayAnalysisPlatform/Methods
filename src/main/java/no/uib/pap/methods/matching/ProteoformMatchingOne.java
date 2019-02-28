@@ -1,4 +1,4 @@
-package no.uib.pap.methods.search;
+package no.uib.pap.methods.matching;
 
 import no.uib.pap.model.Proteoform;
 import org.apache.commons.lang3.tuple.MutablePair;

@@ -1,4 +1,4 @@
-package no.uib.pap.methods.search;
+package no.uib.pap.methods.matching;
 
 import no.uib.pap.model.MatchType;
 import no.uib.pap.model.Proteoform;
